@@ -77,6 +77,19 @@
             </svg>
             <span class="nav-text">Protokol SOP</span>
           </li>
+
+          <!-- Item 5: Profil Petugas (Figma Node 101:1989) -->
+          <li 
+            class="nav-item" 
+            :class="{ active: activeView === 'profile' }"
+            @click="handleNav('profile')"
+          >
+            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" :stroke="activeView === 'profile' ? '#057602' : '#6C6C6C'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span class="nav-text">Profil &amp; Pengaturan</span>
+          </li>
         </ul>
       </nav>
 
@@ -91,7 +104,7 @@
           <span>Keluar Akun Petugas</span>
         </button>
 
-        <button class="user-avatar-btn" title="Profil Petugas">
+        <button class="user-avatar-btn" title="Profil Petugas" @click="handleNav('profile')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>

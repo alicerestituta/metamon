@@ -123,6 +123,37 @@
 
         <ReroutePage />
       </template>
+
+      <!-- Profil Petugas View (Figma Node 101:1989) -->
+      <template v-else-if="currentView === 'profile'">
+        <div class="view-header-bar">
+          <button
+            class="back-btn"
+            @click="currentView = 'dashboard'"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#1F1F1F"
+              stroke-width="2.2"
+              stroke-linecap="round"
+            >
+              <line
+                x1="19"
+                y1="12"
+                x2="5"
+                y2="12"
+              ></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Kembali ke Dashboard</span>
+          </button>
+        </div>
+
+        <ProfilePage @logout="currentView = 'dashboard'" />
+      </template>
     </main>
 
     <!-- Sidebar Drawer (Figma Node 118:92) Teleported to Body -->
@@ -163,6 +194,7 @@ import MethaneChart from './components/MethaneChart.vue';
 import SensorLogPage from './components/SensorLogPage.vue';
 import SopProtocolPage from './components/SopProtocolPage.vue';
 import ReroutePage from './components/ReroutePage.vue';
+import ProfilePage from './components/ProfilePage.vue';
 import SensorLogModal from './components/SensorLogModal.vue';
 import SafetyProtocolModal from './components/SafetyProtocolModal.vue';
 
@@ -184,6 +216,8 @@ function handleNavigation(viewName) {
     currentView.value = 'sop';
   } else if (viewName === 'reroute') {
     currentView.value = 'reroute';
+  } else if (viewName === 'profile') {
+    currentView.value = 'profile';
   }
 }
 </script>

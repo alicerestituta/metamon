@@ -1,6 +1,6 @@
 <template>
   <header class="app-header">
-    <div class="brand-container">
+    <div class="brand-container" @click="emit('go-home')" style="cursor: pointer;">
       <div class="brand-logo-icon">
         <svg width="20" height="14" viewBox="0 0 19 13" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#057602" />
@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['toggle-sidebar'])
+const emit = defineEmits(['toggle-sidebar', 'go-home'])
 
 function onToggle() {
   emit('toggle-sidebar')
