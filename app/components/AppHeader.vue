@@ -1,0 +1,78 @@
+<template>
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-logo-icon">
+        <svg width="20" height="14" viewBox="0 0 19 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#057602" />
+        </svg>
+      </div>
+      <span class="brand-name">Metamon</span>
+    </div>
+
+    <button @click.prevent.stop="onToggle" class="menu-toggle-btn" aria-label="Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1D1F" stroke-width="2.2" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7" />
+        <line x1="4" y1="12" x2="20" y2="12" />
+        <line x1="4" y1="17" x2="20" y2="17" />
+      </svg>
+    </button>
+  </header>
+</template>
+
+<script setup>
+const emit = defineEmits(['toggle-sidebar'])
+
+function onToggle() {
+  emit('toggle-sidebar')
+}
+</script>
+
+<style scoped>
+.app-header {
+  height: 60px;
+  padding: 0 20px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-icon {
+  display: flex;
+  align-items: center;
+}
+
+.brand-name {
+  font-size: 21px;
+  font-weight: 700;
+  color: #057602;
+  letter-spacing: -0.4px;
+}
+
+.menu-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.menu-toggle-btn:hover {
+  background: #F4F4F6;
+}
+</style>
