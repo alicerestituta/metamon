@@ -4,7 +4,9 @@
     <header class="sop-header">
       <div class="header-content">
         <h1 class="page-title">Protokol Tanggap Darurat</h1>
-        <p class="page-subtitle">Tahapan mitigasi sebelum mengirim laporan penutupan insiden ke Pusat Data DLH.</p>
+        <p class="page-subtitle">
+          Tahapan mitigasi sebelum mengirim laporan penutupan insiden ke Pusat Data DLH.
+        </p>
       </div>
       <div class="header-status-badge">
         <span class="status-dot-pulse"></span>
@@ -19,7 +21,9 @@
         <div class="card-header">
           <div class="title-group">
             <h2 class="card-title">Protokol Tanggap Darurat</h2>
-            <p class="card-subtext">Centang setiap langkah yang telah selesai terverifikasi di lapangan</p>
+            <p class="card-subtext">
+              Centang setiap langkah yang telah selesai terverifikasi di lapangan
+            </p>
           </div>
           <div class="progress-badge-group">
             <span class="progress-capsule">{{ completedCount }} / {{ tasks.length }} Selesai</span>
@@ -28,10 +32,7 @@
 
         <!-- Progress Bar -->
         <div class="progress-track">
-          <div
-            class="progress-fill"
-            :style="{ width: progressPercentage + '%' }"
-          ></div>
+          <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
         </div>
 
         <!-- Task Checklist Items -->
@@ -77,10 +78,7 @@
               </label>
             </div>
 
-            <div
-              v-if="task.completed"
-              class="verified-badge"
-            >
+            <div v-if="task.completed" class="verified-badge">
               <svg
                 width="12"
                 height="12"
@@ -112,11 +110,7 @@
           <!-- Officer 1 -->
           <div class="officer-card">
             <div class="officer-avatar-wrapper">
-              <img
-                src="/officer_bambang.png"
-                alt="Bambang Suharto Wijaya"
-                class="officer-avatar"
-              />
+              <img src="/officer_bambang.png" alt="Bambang Suharto Wijaya" class="officer-avatar" />
             </div>
             <div class="officer-details">
               <span class="role-tag command">Penanggung Jawab Komando</span>
@@ -128,11 +122,7 @@
           <!-- Officer 2 -->
           <div class="officer-card">
             <div class="officer-avatar-wrapper">
-              <img
-                src="/officer_indra.png"
-                alt="Indra Setiawan Nugraha"
-                class="officer-avatar"
-              />
+              <img src="/officer_indra.png" alt="Indra Setiawan Nugraha" class="officer-avatar" />
             </div>
             <div class="officer-details">
               <span class="role-tag supervisor">Pengawas Lapangan</span>
@@ -154,10 +144,7 @@
 
           <div class="notes-form-footer">
             <span class="char-counter">Karakter tercatat: {{ logNotes.length }}</span>
-            <button
-              class="save-confirm-btn"
-              @click="handleSaveLog"
-            >
+            <button class="save-confirm-btn" @click="handleSaveLog">
               <svg
                 width="16"
                 height="16"
@@ -196,7 +183,9 @@
               </div>
               <span class="history-time">Hari Ini, 08:30 WIB</span>
             </div>
-            <p class="history-desc">Pembersihan sedimentasi kerak & flushing katup primer sektor B.</p>
+            <p class="history-desc">
+              Pembersihan sedimentasi kerak & flushing katup primer sektor B.
+            </p>
             <div class="history-footer">
               <span class="resolved-tag">✓ Selesai</span>
               <span class="sector-tag">Sektor B</span>
@@ -212,7 +201,9 @@
               </div>
               <span class="history-time">Kemarin, 14:15 WIB</span>
             </div>
-            <p class="history-desc">Aerasi portabel & penutupan membrane geomembrane tambahan sektor B.</p>
+            <p class="history-desc">
+              Aerasi portabel & penutupan membrane geomembrane tambahan sektor B.
+            </p>
             <div class="history-footer">
               <span class="resolved-tag">✓ Selesai</span>
               <span class="sector-tag">Sektor B</span>
@@ -222,10 +213,7 @@
 
         <!-- Archive Button -->
         <div class="archive-btn-wrapper">
-          <button
-            class="archive-btn"
-            @click="handleOpenArchive"
-          >
+          <button class="archive-btn" @click="handleOpenArchive">
             <span>Buka Arsip Lengkap Insiden K3 TPA</span>
             <svg
               width="16"
@@ -237,12 +225,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <line
-                x1="5"
-                y1="12"
-                x2="19"
-                y2="12"
-              ></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
           </button>
@@ -282,10 +265,14 @@ const tasks = ref([
   },
 ]);
 
-const logNotes = ref('Tim damkar standby di radius 100m. Pembacaan metana mulai melandai dari puncak 1.620 ppm.');
+const logNotes = ref(
+  'Tim damkar standby di radius 100m. Pembacaan metana mulai melandai dari puncak 1.620 ppm.',
+);
 
 const completedCount = computed(() => tasks.value.filter((t) => t.completed).length);
-const progressPercentage = computed(() => Math.round((completedCount.value / tasks.value.length) * 100));
+const progressPercentage = computed(() =>
+  Math.round((completedCount.value / tasks.value.length) * 100),
+);
 
 function toggleTask(task) {
   task.completed = !task.completed;

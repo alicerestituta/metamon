@@ -12,9 +12,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     response.status(status).json({
       success: false,
       statusCode: status,
-      error: typeof exceptionResponse === 'string'
-        ? exceptionResponse
-        : exceptionResponse.message ?? 'Internal server error',
+      error:
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse.message ?? 'Internal server error'),
     });
   }
 }

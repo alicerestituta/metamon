@@ -19,9 +19,7 @@ export class SensorsService {
   ) {}
 
   async findAll(query: SensorQueryDto) {
-    const qb = this.nodeRepo
-      .createQueryBuilder('n')
-      .leftJoinAndSelect('n.sector', 's');
+    const qb = this.nodeRepo.createQueryBuilder('n').leftJoinAndSelect('n.sector', 's');
 
     if (query.sector) qb.andWhere('s.sector_code = :sector', { sector: query.sector });
     if (query.search) qb.andWhere('n.node_code ILIKE :search', { search: `%${query.search}%` });
@@ -43,7 +41,11 @@ export class SensorsService {
         return {
           id: node.id,
           nodeCode: node.nodeCode,
-          sector: { id: node.sector.id, sectorCode: node.sector.sectorCode, name: node.sector.name },
+          sector: {
+            id: node.sector.id,
+            sectorCode: node.sector.sectorCode,
+            name: node.sector.name,
+          },
           batteryPercent: node.batteryPercent,
           isActive: node.isActive,
           lastSeenAt: node.lastSeenAt,

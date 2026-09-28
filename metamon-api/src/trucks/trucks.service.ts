@@ -26,7 +26,10 @@ export class TrucksService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    const [trucks, total] = await qb.skip((page - 1) * limit).take(limit).getManyAndCount();
+    const [trucks, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
     const reroutedCount = await this.truckRepo.count({ where: { isRerouted: true } });
     const normalCount = await this.truckRepo.count({ where: { isRerouted: false } });
@@ -39,10 +42,18 @@ export class TrucksService {
           plateNumber: t.plateNumber,
           isRerouted: t.isRerouted,
           originalSector: t.originalSector
-            ? { id: t.originalSector.id, sectorCode: t.originalSector.sectorCode, name: t.originalSector.name }
+            ? {
+                id: t.originalSector.id,
+                sectorCode: t.originalSector.sectorCode,
+                name: t.originalSector.name,
+              }
             : null,
           reroutedSector: t.reroutedSector
-            ? { id: t.reroutedSector.id, sectorCode: t.reroutedSector.sectorCode, name: t.reroutedSector.name }
+            ? {
+                id: t.reroutedSector.id,
+                sectorCode: t.reroutedSector.sectorCode,
+                name: t.reroutedSector.name,
+              }
             : null,
         })),
         summary: { total, reroutedCount, normalCount },

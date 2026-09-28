@@ -53,11 +53,12 @@ export class SectorsService {
 
   private async enrichSector(sector: Sector) {
     const currentCh4Ppm = await this.getCurrentCh4(sector.id);
-    
+
     let dynamicStatus = sector.status;
     // Jika tidak dikunci manual, update status sesuai nilai CH4 terkini
     if (dynamicStatus !== 'locked' && currentCh4Ppm !== null) {
-      dynamicStatus = currentCh4Ppm >= 1000 ? 'danger' : (currentCh4Ppm >= 500 ? 'warning' : 'normal');
+      dynamicStatus =
+        currentCh4Ppm >= 1000 ? 'danger' : currentCh4Ppm >= 500 ? 'warning' : 'normal';
     }
 
     return {

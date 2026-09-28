@@ -29,7 +29,12 @@ export class AuthService {
       success: true,
       data: {
         accessToken: this.jwtService.sign(payload),
-        officer: { id: officer.id, name: officer.name, role: officer.role, avatarUrl: officer.avatarUrl },
+        officer: {
+          id: officer.id,
+          name: officer.name,
+          role: officer.role,
+          avatarUrl: officer.avatarUrl,
+        },
       },
     };
   }

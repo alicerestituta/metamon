@@ -1,8 +1,14 @@
 <template>
   <header class="app-header">
-    <div class="brand-container" style="cursor: pointer;" @click="emit('go-home')">
+    <div class="brand-container" style="cursor: pointer" @click="emit('go-home')">
       <div class="brand-logo-icon">
-        <svg width="20" height="14" viewBox="0 0 19 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          width="20"
+          height="14"
+          viewBox="0 0 19 13"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#057602" />
         </svg>
       </div>
@@ -10,7 +16,15 @@
     </div>
 
     <button class="menu-toggle-btn" aria-label="Menu" @click.prevent.stop="onToggle">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1D1F" stroke-width="2.2" stroke-linecap="round">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#1A1D1F"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      >
         <line x1="4" y1="7" x2="20" y2="7" />
         <line x1="4" y1="12" x2="20" y2="12" />
         <line x1="4" y1="17" x2="20" y2="17" />
@@ -20,10 +34,10 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['toggle-sidebar', 'go-home'])
+const emit = defineEmits(['toggle-sidebar', 'go-home']);
 
 function onToggle() {
-  emit('toggle-sidebar')
+  emit('toggle-sidebar');
 }
 </script>
 
@@ -31,7 +45,7 @@ function onToggle() {
 .app-header {
   height: 60px;
   padding: 0 20px;
-  background: #FFFFFF;
+  background: #ffffff;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -73,6 +87,6 @@ function onToggle() {
 }
 
 .menu-toggle-btn:hover {
-  background: #F4F4F6;
+  background: #f4f4f6;
 }
 </style>

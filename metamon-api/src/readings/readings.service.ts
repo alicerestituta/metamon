@@ -85,11 +85,20 @@ export class ReadingsService {
 
     // Baseline CH4 per node (ppm) — sesuai seed
     const baselines: Record<string, number> = {
-      'B-07': 1490, 'C-07': 1080, 'B-12': 740,
-      'A-04': 190,  'A-09': 220,  'D-02': 115,
+      'B-07': 1490,
+      'C-07': 1080,
+      'B-12': 740,
+      'A-04': 190,
+      'A-09': 220,
+      'D-02': 115,
     };
 
-    const readings: Array<{ nodeCode: string; sectorCode: string; ch4Ppm: number; status: string }> = [];
+    const readings: Array<{
+      nodeCode: string;
+      sectorCode: string;
+      ch4Ppm: number;
+      status: string;
+    }> = [];
 
     for (const node of nodes) {
       if (!node.isActive) continue;
@@ -97,7 +106,7 @@ export class ReadingsService {
       // Fluktuasi yang lebih ekstrem agar pergerakan grafik sangat terlihat (real-time demo)
       // ±25% drift perlahan + ±15% noise acak setiap tick
       const drift = Math.sin(Date.now() / 20000) * base * 0.25;
-      const noise = (Math.random() - 0.5) * base * 0.30;
+      const noise = (Math.random() - 0.5) * base * 0.3;
       const ch4 = Math.max(0, Math.round(base + drift + noise));
 
       const status = ch4 >= 1000 ? 'danger' : ch4 >= 500 ? 'warning' : 'normal';
@@ -108,13 +117,20 @@ export class ReadingsService {
       );
       await this.nodeRepo.update(node.id, { lastSeenAt: new Date() });
 
-      readings.push({ nodeCode: node.nodeCode, sectorCode: node.sector?.sectorCode ?? '?', ch4Ppm: ch4, status });
+      readings.push({
+        nodeCode: node.nodeCode,
+        sectorCode: node.sector?.sectorCode ?? '?',
+        ch4Ppm: ch4,
+        status,
+      });
     }
 
     // Overall worst status
-    const overallStatus = readings.some(r => r.status === 'danger')
+    const overallStatus = readings.some((r) => r.status === 'danger')
       ? 'danger'
-      : readings.some(r => r.status === 'warning') ? 'warning' : 'normal';
+      : readings.some((r) => r.status === 'warning')
+        ? 'warning'
+        : 'normal';
 
     const avgCh4 = readings.length
       ? Math.round(readings.reduce((s, r) => s + r.ch4Ppm, 0) / readings.length)
@@ -139,8 +155,12 @@ export class ReadingsService {
     const nodes = await this.nodeRepo.find();
 
     const baselines: Record<string, number> = {
-      'B-07': 1490, 'C-07': 1080, 'B-12': 740,
-      'A-04': 190,  'A-09': 220,  'D-02': 115,
+      'B-07': 1490,
+      'C-07': 1080,
+      'B-12': 740,
+      'A-04': 190,
+      'A-09': 220,
+      'D-02': 115,
     };
 
     const now = new Date();
@@ -171,13 +191,15 @@ export class ReadingsService {
         const hourFactor = 0.85 + (h / 24) * 0.3;
         const noise = (Math.random() - 0.4) * base * 0.12;
         const ch4 = Math.max(0, Math.round(base * hourFactor + noise));
-        toInsert.push(
-          this.readingRepo.create({ nodeId: node.id, ch4Ppm: ch4, recordedAt: ts }),
-        );
+        toInsert.push(this.readingRepo.create({ nodeId: node.id, ch4Ppm: ch4, recordedAt: ts }));
       }
     }
 
     await this.readingRepo.save(toInsert);
-    return { success: true, message: `${toInsert.length} data historis berhasil disisipkan`, seeded: toInsert.length };
+    return {
+      success: true,
+      message: `${toInsert.length} data historis berhasil disisipkan`,
+      seeded: toInsert.length,
+    };
   }
 }

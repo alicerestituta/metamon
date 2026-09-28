@@ -5,13 +5,18 @@
       <div class="profile-info-row">
         <!-- Avatar with Verification Badge -->
         <div class="avatar-wrapper">
-          <img 
-            :src="userProfile.avatar" 
-            :alt="userProfile.name" 
-            class="avatar-img"
-          />
+          <img :src="userProfile.avatar" :alt="userProfile.name" class="avatar-img" />
           <div class="verified-badge" title="Akun Terverifikasi Resmi">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#FFFFFF"
+              stroke-width="3.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
@@ -28,7 +33,17 @@
 
       <!-- Edit Profile Button -->
       <button class="edit-profile-btn" @click="isEditingProfile = true">
-        <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="btn-icon"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
         </svg>
         <span>Edit Profil</span>
@@ -38,7 +53,7 @@
     <!-- Telemetry Notification Preferences Card (Figma Node 101:1848) -->
     <div class="profile-card settings-card">
       <h3 class="card-heading">Preferensi Notifikasi Telemetri</h3>
-      
+
       <div class="settings-list">
         <!-- Toggle 1: Peringatan Metana -->
         <div class="setting-item" @click="toggleSetting('methaneAlert')">
@@ -46,12 +61,12 @@
             <h4 class="setting-title">Peringatan Metana &gt; 1.000 ppm</h4>
             <p class="setting-desc">Getar &amp; push notifikasi prioritas tinggi</p>
           </div>
-          
-          <button 
-            type="button" 
-            role="switch" 
-            :aria-checked="notifications.methaneAlert" 
-            class="switch-control" 
+
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="notifications.methaneAlert"
+            class="switch-control"
             :class="{ 'switch-active': notifications.methaneAlert }"
             @click.stop="toggleSetting('methaneAlert')"
           >
@@ -65,12 +80,12 @@
             <h4 class="setting-title">Laporan Harian Ritase Armada Masuk</h4>
             <p class="setting-desc">Ringkasan tonase timbunan setiap 18:00 WIB</p>
           </div>
-          
-          <button 
-            type="button" 
-            role="switch" 
-            :aria-checked="notifications.dailyReport" 
-            class="switch-control" 
+
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="notifications.dailyReport"
+            class="switch-control"
             :class="{ 'switch-active': notifications.dailyReport }"
             @click.stop="toggleSetting('dailyReport')"
           >
@@ -83,23 +98,31 @@
     <!-- Device & Security Card (Figma Node 101:1890) -->
     <div class="profile-card settings-card">
       <h3 class="card-heading">Perangkat &amp; Keamanan Akun</h3>
-      
+
       <div class="menu-action-list">
         <!-- Button 1: Ganti Kata Sandi & PIN -->
         <button class="action-row-btn" @click="showPasswordModal = true">
           <div class="action-left">
             <!-- Icon Asterisk PIN -->
             <div class="action-icon-box">
-              <svg width="18" height="12" viewBox="0 0 20 12" fill="none" stroke="#242424" stroke-width="2" stroke-linecap="round">
+              <svg
+                width="18"
+                height="12"
+                viewBox="0 0 20 12"
+                fill="none"
+                stroke="#242424"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
                 <!-- Three Password Asterisks with Baseline -->
                 <line x1="3" y1="2" x2="3" y2="8"></line>
                 <line x1="1" y1="3.5" x2="5" y2="6.5"></line>
                 <line x1="1" y1="6.5" x2="5" y2="3.5"></line>
-                
+
                 <line x1="10" y1="2" x2="10" y2="8"></line>
                 <line x1="8" y1="3.5" x2="12" y2="6.5"></line>
                 <line x1="8" y1="6.5" x2="12" y2="3.5"></line>
-                
+
                 <line x1="17" y1="2" x2="17" y2="8"></line>
                 <line x1="15" y1="3.5" x2="19" y2="6.5"></line>
                 <line x1="15" y1="6.5" x2="19" y2="3.5"></line>
@@ -109,7 +132,17 @@
             <span class="action-title">Ganti Kata Sandi &amp; PIN</span>
           </div>
 
-          <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            class="chevron-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#6C6C6C"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
@@ -118,7 +151,16 @@
         <button class="action-row-btn" @click="showAuditModal = true">
           <div class="action-left">
             <div class="action-icon-box">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#242424" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#242424"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                 <path d="M3 3v5h5"></path>
                 <polyline points="12 7 12 12 15 15"></polyline>
@@ -127,7 +169,17 @@
             <span class="action-title">Riwayat Masuk &amp; Audit</span>
           </div>
 
-          <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            class="chevron-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#6C6C6C"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
@@ -136,7 +188,17 @@
 
     <!-- Keluar Akun Petugas Button (Figma Node 101:1937) -->
     <button class="logout-action-btn" @click="confirmLogout">
-      <svg class="logout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CB0525" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        class="logout-icon"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#CB0525"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
         <polyline points="16 17 21 12 16 7"></polyline>
         <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -147,7 +209,16 @@
     <!-- Feedback Toast Notification -->
     <transition name="toast-pop">
       <div v-if="toastMessage" class="toast-feedback">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#057602" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#057602"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
         <span>{{ toastMessage }}</span>
@@ -161,7 +232,14 @@
           <div class="modal-header">
             <h3 class="modal-title">Edit Profil Petugas</h3>
             <button class="modal-close-btn" @click="isEditingProfile = false">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2.2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6C6C6C"
+                stroke-width="2.2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -190,7 +268,9 @@
             </div>
 
             <div class="modal-actions">
-              <button type="button" class="btn-secondary" @click="isEditingProfile = false">Batal</button>
+              <button type="button" class="btn-secondary" @click="isEditingProfile = false">
+                Batal
+              </button>
               <button type="submit" class="btn-primary">Simpan Perubahan</button>
             </div>
           </form>
@@ -205,7 +285,14 @@
           <div class="modal-header">
             <h3 class="modal-title">Ganti Kata Sandi &amp; PIN</h3>
             <button class="modal-close-btn" @click="showPasswordModal = false">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2.2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6C6C6C"
+                stroke-width="2.2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -229,7 +316,9 @@
             </div>
 
             <div class="modal-actions">
-              <button type="button" class="btn-secondary" @click="showPasswordModal = false">Batal</button>
+              <button type="button" class="btn-secondary" @click="showPasswordModal = false">
+                Batal
+              </button>
               <button type="submit" class="btn-primary">Perbarui Keamanan</button>
             </div>
           </form>
@@ -244,7 +333,14 @@
           <div class="modal-header">
             <h3 class="modal-title">Riwayat Masuk &amp; Audit</h3>
             <button class="modal-close-btn" @click="showAuditModal = false">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2.2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6C6C6C"
+                stroke-width="2.2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -277,8 +373,15 @@
               <span class="audit-time">25 Sep 2026, 11:20 WIB</span>
             </div>
 
-            <div class="modal-actions" style="margin-top: 14px;">
-              <button type="button" class="btn-primary" style="width: 100%;" @click="showAuditModal = false">Tutup</button>
+            <div class="modal-actions" style="margin-top: 14px">
+              <button
+                type="button"
+                class="btn-primary"
+                style="width: 100%"
+                @click="showAuditModal = false"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>
@@ -288,9 +391,9 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive } from 'vue';
 
-const emit = defineEmits(['logout'])
+const emit = defineEmits(['logout']);
 
 // Officer Profile State (Matching Figma Specs)
 const userProfile = reactive({
@@ -298,58 +401,58 @@ const userProfile = reactive({
   credentials: 'S.T., M.Ling.',
   nip: '19880415 201201 2 004',
   role: 'Koordinator Keselamatan Lingkungan & K3 TPA',
-  avatar: '/officer_ratna.jpg'
-})
+  avatar: '/officer_ratna.jpg',
+});
 
 // Edit Form State
-const isEditingProfile = ref(false)
-const editForm = reactive({ ...userProfile })
+const isEditingProfile = ref(false);
+const editForm = reactive({ ...userProfile });
 
 // Notification Preferences
 const notifications = reactive({
   methaneAlert: true,
-  dailyReport: true
-})
+  dailyReport: true,
+});
 
 // Modals State
-const showPasswordModal = ref(false)
-const showAuditModal = ref(false)
-const toastMessage = ref('')
+const showPasswordModal = ref(false);
+const showAuditModal = ref(false);
+const toastMessage = ref('');
 
-let toastTimer = null
+let toastTimer = null;
 function showToast(msg) {
-  toastMessage.value = msg
-  if (toastTimer) clearTimeout(toastTimer)
+  toastMessage.value = msg;
+  if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
-    toastMessage.value = ''
-  }, 2500)
+    toastMessage.value = '';
+  }, 2500);
 }
 
 function toggleSetting(key) {
-  notifications[key] = !notifications[key]
-  const status = notifications[key] ? 'diaktifkan' : 'dinonaktifkan'
-  const title = key === 'methaneAlert' ? 'Peringatan Metana' : 'Laporan Harian Ritase'
-  showToast(`${title} berhasil ${status}`)
+  notifications[key] = !notifications[key];
+  const status = notifications[key] ? 'diaktifkan' : 'dinonaktifkan';
+  const title = key === 'methaneAlert' ? 'Peringatan Metana' : 'Laporan Harian Ritase';
+  showToast(`${title} berhasil ${status}`);
 }
 
 function saveProfile() {
-  userProfile.name = editForm.name
-  userProfile.credentials = editForm.credentials
-  userProfile.nip = editForm.nip
-  userProfile.role = editForm.role
-  isEditingProfile.value = false
-  showToast('Data profil berhasil diperbarui')
+  userProfile.name = editForm.name;
+  userProfile.credentials = editForm.credentials;
+  userProfile.nip = editForm.nip;
+  userProfile.role = editForm.role;
+  isEditingProfile.value = false;
+  showToast('Data profil berhasil diperbarui');
 }
 
 function saveSecurity() {
-  showPasswordModal.value = false
-  showToast('Kata sandi dan PIN berhasil diperbarui')
+  showPasswordModal.value = false;
+  showToast('Kata sandi dan PIN berhasil diperbarui');
 }
 
 function confirmLogout() {
   if (confirm('Apakah Anda yakin ingin keluar dari akun petugas?')) {
-    emit('logout')
-    showToast('Berhasil keluar dari akun petugas')
+    emit('logout');
+    showToast('Berhasil keluar dari akun petugas');
   }
 }
 </script>
@@ -364,8 +467,8 @@ function confirmLogout() {
 
 /* Card Styling */
 .profile-card {
-  background: #FFFFFF;
-  border: 1px solid #EBEBEB;
+  background: #ffffff;
+  border: 1px solid #ebebeb;
   border-radius: 16px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
@@ -397,8 +500,8 @@ function confirmLogout() {
   height: 100%;
   object-fit: cover;
   border-radius: 16px;
-  background: #F0F2F5;
-  border: 1px solid #E5E7EB;
+  background: #f0f2f5;
+  border: 1px solid #e5e7eb;
 }
 
 .verified-badge {
@@ -408,7 +511,7 @@ function confirmLogout() {
   width: 22px;
   height: 22px;
   background-color: #057602;
-  border: 2.5px solid #FFFFFF;
+  border: 2.5px solid #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -436,14 +539,14 @@ function confirmLogout() {
 .officer-credentials {
   font-size: 13px;
   font-weight: 500;
-  color: #6C6C6C;
+  color: #6c6c6c;
   line-height: 1.3;
 }
 
 .officer-nip {
   font-size: 12px;
   font-weight: 500;
-  color: #6C6C6C;
+  color: #6c6c6c;
   line-height: 1.3;
   margin-top: 1px;
 }
@@ -451,7 +554,7 @@ function confirmLogout() {
 .officer-role {
   font-size: 12px;
   font-weight: 500;
-  color: #6C6C6C;
+  color: #6c6c6c;
   line-height: 1.35;
   margin-top: 2px;
 }
@@ -467,11 +570,13 @@ function confirmLogout() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.18s ease, transform 0.1s ease;
+  transition:
+    background-color 0.18s ease,
+    transform 0.1s ease;
 }
 
 .edit-profile-btn:hover {
@@ -527,7 +632,7 @@ function confirmLogout() {
 
 .setting-desc {
   font-size: 12px;
-  color: #6C6C6C;
+  color: #6c6c6c;
   line-height: 1.35;
   margin-top: 2px;
 }
@@ -536,7 +641,7 @@ function confirmLogout() {
 .switch-control {
   width: 44px;
   height: 24px;
-  background-color: #E2E4E8;
+  background-color: #e2e4e8;
   border: none;
   border-radius: 12px;
   position: relative;
@@ -554,7 +659,7 @@ function confirmLogout() {
   display: block;
   width: 20px;
   height: 20px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -575,20 +680,22 @@ function confirmLogout() {
 .action-row-btn {
   width: 100%;
   height: 44px;
-  background: #F7F7F8;
-  border: 1px solid #F0F0F2;
+  background: #f7f7f8;
+  border: 1px solid #f0f0f2;
   border-radius: 10px;
   padding: 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .action-row-btn:hover {
-  background: #EFEFF1;
-  border-color: #E2E4E8;
+  background: #efeff1;
+  border-color: #e2e4e8;
 }
 
 .action-left {
@@ -618,23 +725,23 @@ function confirmLogout() {
 .logout-action-btn {
   width: 100%;
   height: 44px;
-  background: #F7F7F8;
-  border: 1px solid #F0F0F2;
+  background: #f7f7f8;
+  border: 1px solid #f0f0f2;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  color: #CB0525;
+  color: #cb0525;
   font-size: 13.5px;
   font-weight: 700;
   transition: all 0.15s ease;
 }
 
 .logout-action-btn:hover {
-  background: #FEE2E2;
-  border-color: #FCA5A5;
+  background: #fee2e2;
+  border-color: #fca5a5;
 }
 
 .logout-icon {
@@ -647,8 +754,8 @@ function confirmLogout() {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: #FFFFFF;
-  border: 1px solid #A7F3D0;
+  background: #ffffff;
+  border: 1px solid #a7f3d0;
   color: #057602;
   font-size: 13px;
   font-weight: 700;
@@ -688,7 +795,7 @@ function confirmLogout() {
 .modal-card {
   width: 100%;
   max-width: 380px;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -696,13 +803,19 @@ function confirmLogout() {
 }
 
 @keyframes modalScale {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .modal-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #EBEBEB;
+  border-bottom: 1px solid #ebebeb;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -726,7 +839,7 @@ function confirmLogout() {
 }
 
 .modal-close-btn:hover {
-  background: #F4F4F6;
+  background: #f4f4f6;
 }
 
 .modal-body {
@@ -745,18 +858,18 @@ function confirmLogout() {
 .form-label {
   font-size: 12.5px;
   font-weight: 600;
-  color: #4A4A4A;
+  color: #4a4a4a;
 }
 
 .form-input,
 .form-textarea {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #D5D9E0;
+  border: 1px solid #d5d9e0;
   border-radius: 8px;
   font-size: 13.5px;
   font-family: inherit;
-  color: #1A1D1F;
+  color: #1a1d1f;
   outline: none;
   transition: border-color 0.15s ease;
 }
@@ -781,17 +894,17 @@ function confirmLogout() {
 .btn-secondary {
   flex: 1;
   height: 38px;
-  background: #F4F4F6;
-  border: 1px solid #E2E4E8;
+  background: #f4f4f6;
+  border: 1px solid #e2e4e8;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #4A4A4A;
+  color: #4a4a4a;
   cursor: pointer;
 }
 
 .btn-secondary:hover {
-  background: #EBECEF;
+  background: #ebecef;
 }
 
 .btn-primary {
@@ -802,7 +915,7 @@ function confirmLogout() {
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #ffffff;
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -820,8 +933,8 @@ function confirmLogout() {
 
 .audit-item {
   padding: 12px 14px;
-  background: #F9FAFB;
-  border: 1px solid #EBEBEB;
+  background: #f9fafb;
+  border: 1px solid #ebebeb;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -829,8 +942,8 @@ function confirmLogout() {
 }
 
 .audit-item.active-session {
-  background: #ECFDF5;
-  border-color: #A7F3D0;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
 }
 
 .audit-header {
@@ -849,18 +962,18 @@ function confirmLogout() {
   font-size: 10.5px;
   font-weight: 700;
   background: #057602;
-  color: #FFFFFF;
+  color: #ffffff;
   padding: 2px 8px;
   border-radius: 12px;
 }
 
 .audit-location {
   font-size: 11.5px;
-  color: #6C6C6C;
+  color: #6c6c6c;
 }
 
 .audit-time {
   font-size: 11px;
-  color: #8E8E93;
+  color: #8e8e93;
 }
 </style>

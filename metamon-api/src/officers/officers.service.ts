@@ -67,7 +67,10 @@ export class OfficersService {
     return { success: true, message: 'Kata sandi dan PIN berhasil diperbarui' };
   }
 
-  async createAuditLog(officerId: string, meta: { deviceName: string; ipAddress: string; locationNote?: string }) {
+  async createAuditLog(
+    officerId: string,
+    meta: { deviceName: string; ipAddress: string; locationNote?: string },
+  ) {
     const log = this.auditRepo.create({ officerId, isActiveSession: true, ...meta });
     return this.auditRepo.save(log);
   }

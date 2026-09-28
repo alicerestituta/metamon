@@ -5,17 +5,11 @@
     <AppToast />
 
     <!-- Login Screen -->
-    <LoginScreen
-      v-if="!isLoggedIn"
-      @login-success="onLoginSuccess"
-    />
+    <LoginScreen v-if="!isLoggedIn" @login-success="onLoginSuccess" />
 
     <template v-else>
       <!-- Top Header (Logo click returns to Dashboard) -->
-      <AppHeader
-        @toggle-sidebar="showSidebar = true"
-        @go-home="currentView = 'dashboard'"
-      />
+      <AppHeader @toggle-sidebar="showSidebar = true" @go-home="currentView = 'dashboard'" />
 
       <!-- Navigation View Switcher -->
       <main class="app-main-content">
@@ -44,7 +38,15 @@
         <template v-else-if="currentView === 'sensor-log'">
           <div class="view-header-bar">
             <button class="back-btn" @click="currentView = 'dashboard'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2.2" stroke-linecap="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#1F1F1F"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
@@ -58,7 +60,15 @@
         <template v-else-if="currentView === 'sop'">
           <div class="view-header-bar">
             <button class="back-btn" @click="currentView = 'dashboard'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2.2" stroke-linecap="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#1F1F1F"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
@@ -72,7 +82,15 @@
         <template v-else-if="currentView === 'reroute'">
           <div class="view-header-bar">
             <button class="back-btn" @click="currentView = 'dashboard'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2.2" stroke-linecap="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#1F1F1F"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
@@ -86,7 +104,15 @@
         <template v-else-if="currentView === 'profile'">
           <div class="view-header-bar">
             <button class="back-btn" @click="currentView = 'dashboard'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2.2" stroke-linecap="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#1F1F1F"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
@@ -111,15 +137,9 @@
       </Teleport>
 
       <!-- Modals -->
-      <SensorLogModal
-        v-if="showLogsModal"
-        @close="showLogsModal = false"
-      />
+      <SensorLogModal v-if="showLogsModal" @close="showLogsModal = false" />
 
-      <SafetyProtocolModal
-        v-if="showProtocolModal"
-        @close="showProtocolModal = false"
-      />
+      <SafetyProtocolModal v-if="showProtocolModal" @close="showProtocolModal = false" />
     </template>
   </div>
 </template>

@@ -33,7 +33,17 @@
             <span class="val-unit">ppm</span>
           </div>
           <div class="trend-box" :class="trendClass">
-            <svg class="trend-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              class="trend-icon"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <template v-if="(data?.ch4TrendPercent24h ?? 0) >= 0">
                 <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                 <polyline points="17 6 23 6 23 12"></polyline>
@@ -54,9 +64,7 @@
             <span class="val-number">{{ data?.activeNodes ?? '—' }}</span>
             <span class="val-slash">/ {{ data?.totalNodes ?? '—' }}</span>
           </div>
-          <div class="status-msg success-msg">
-            {{ data?.activeNodePercent ?? '—' }}% Terhubung
-          </div>
+          <div class="status-msg success-msg">{{ data?.activeNodePercent ?? '—' }}% Terhubung</div>
         </div>
 
         <!-- Card 4: Armada Alih -->
@@ -77,48 +85,52 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const { getDashboard } = useApi()
+const { getDashboard } = useApi();
 
-const loading = ref(true)
-const data    = ref(null)
-let pollTimer = null
+const loading = ref(true);
+const data = ref(null);
+let pollTimer = null;
 
 const RISK_MAP = {
-  danger:  { label: 'BAHAYA',  cls: 'risk-danger',  badge: 'danger-badge' },
-  warning: { label: 'WASPADA', cls: 'risk-warning',  badge: 'warning-badge' },
-  normal:  { label: 'NORMAL',  cls: 'risk-normal',   badge: 'normal-badge' },
-}
+  danger: { label: 'BAHAYA', cls: 'risk-danger', badge: 'danger-badge' },
+  warning: { label: 'WASPADA', cls: 'risk-warning', badge: 'warning-badge' },
+  normal: { label: 'NORMAL', cls: 'risk-normal', badge: 'normal-badge' },
+};
 
-const riskInfo = computed(() => RISK_MAP[data.value?.riskLevel ?? 'normal'] ?? RISK_MAP.normal)
-const riskLabel = computed(() => riskInfo.value.label)
-const riskClass = computed(() => riskInfo.value.cls)
-const riskBadgeClass = computed(() => `status-badge ${riskInfo.value.badge}`)
+const riskInfo = computed(() => RISK_MAP[data.value?.riskLevel ?? 'normal'] ?? RISK_MAP.normal);
+const riskLabel = computed(() => riskInfo.value.label);
+const riskClass = computed(() => riskInfo.value.cls);
+const riskBadgeClass = computed(() => `status-badge ${riskInfo.value.badge}`);
 
 const alertText = computed(() => {
-  if (data.value?.alertSector) return `Sektor ${data.value.alertSector} Terdeteksi`
-  return 'Semua sektor aman'
-})
+  if (data.value?.alertSector) return `Sektor ${data.value.alertSector} Terdeteksi`;
+  return 'Semua sektor aman';
+});
 
-const trendPct = computed(() => data.value?.ch4TrendPercent24h ?? 0)
-const trendText = computed(() => (trendPct.value >= 0 ? `+${trendPct.value}%` : `${trendPct.value}%`))
-const trendClass = computed(() => (trendPct.value > 0 ? 'danger-trend' : 'safe-trend'))
+const trendPct = computed(() => data.value?.ch4TrendPercent24h ?? 0);
+const trendText = computed(() =>
+  trendPct.value >= 0 ? `+${trendPct.value}%` : `${trendPct.value}%`,
+);
+const trendClass = computed(() => (trendPct.value > 0 ? 'danger-trend' : 'safe-trend'));
 
 async function fetchData() {
   try {
-    const res = await getDashboard()
-    data.value = res.data
-  } catch {}
-  finally { loading.value = false }
+    const res = await getDashboard();
+    data.value = res.data;
+  } catch {
+  } finally {
+    loading.value = false;
+  }
 }
 
 onMounted(() => {
-  fetchData()
-  pollTimer = setInterval(fetchData, 10000) // refresh every 10s
-})
+  fetchData();
+  pollTimer = setInterval(fetchData, 10000); // refresh every 10s
+});
 
-onUnmounted(() => clearInterval(pollTimer))
+onUnmounted(() => clearInterval(pollTimer));
 </script>
 
 <style scoped>
@@ -128,8 +140,8 @@ onUnmounted(() => clearInterval(pollTimer))
 }
 
 .telemetry-wrapper-card {
-  background: #FFFFFF;
-  border: 1px solid #EBEBEB;
+  background: #ffffff;
+  border: 1px solid #ebebeb;
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
@@ -142,7 +154,7 @@ onUnmounted(() => clearInterval(pollTimer))
 .section-title {
   font-size: 18px;
   font-weight: 800;
-  color: #1F1F1F;
+  color: #1f1f1f;
   line-height: 1.2;
   letter-spacing: -0.3px;
 }
@@ -150,7 +162,7 @@ onUnmounted(() => clearInterval(pollTimer))
 .section-subtitle {
   font-size: 12px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
   margin-top: 2px;
 }
 
@@ -161,8 +173,8 @@ onUnmounted(() => clearInterval(pollTimer))
 }
 
 .metric-card {
-  background: #FFFFFF;
-  border: 1px solid #EAEAEA;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
   border-radius: 12px;
   padding: 12px;
   height: 100px;
@@ -175,7 +187,7 @@ onUnmounted(() => clearInterval(pollTimer))
 .metric-label {
   font-size: 11px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
   line-height: 1;
 }
 
@@ -192,9 +204,15 @@ onUnmounted(() => clearInterval(pollTimer))
   margin: 2px 0;
 }
 
-.risk-danger  { color: #CB0525; }
-.risk-warning { color: #D97706; }
-.risk-normal  { color: #057602; }
+.risk-danger {
+  color: #cb0525;
+}
+.risk-warning {
+  color: #d97706;
+}
+.risk-normal {
+  color: #057602;
+}
 
 .metric-value-box {
   display: flex;
@@ -206,20 +224,20 @@ onUnmounted(() => clearInterval(pollTimer))
 .val-number {
   font-size: 24px;
   font-weight: 800;
-  color: #1F1F1F;
+  color: #1f1f1f;
   line-height: 1;
 }
 
 .val-unit {
   font-size: 13px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
 }
 
 .val-slash {
   font-size: 14px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
 }
 
 .status-badge {
@@ -232,10 +250,22 @@ onUnmounted(() => clearInterval(pollTimer))
   line-height: 1.2;
 }
 
-.danger-badge  { background: #CB0525; color: #FFFFFF; }
-.warning-badge { background: #F59E0B; color: #1F1F1F; }
-.normal-badge  { background: #057602; color: #FFFFFF; }
-.blue-badge    { background: #0084FF; color: #FFFFFF; }
+.danger-badge {
+  background: #cb0525;
+  color: #ffffff;
+}
+.warning-badge {
+  background: #f59e0b;
+  color: #1f1f1f;
+}
+.normal-badge {
+  background: #057602;
+  color: #ffffff;
+}
+.blue-badge {
+  background: #0084ff;
+  color: #ffffff;
+}
 
 .trend-box {
   display: flex;
@@ -246,10 +276,16 @@ onUnmounted(() => clearInterval(pollTimer))
   line-height: 1;
 }
 
-.danger-trend { color: #CB0525; }
-.safe-trend   { color: #057602; }
+.danger-trend {
+  color: #cb0525;
+}
+.safe-trend {
+  color: #057602;
+}
 
-.trend-icon { flex-shrink: 0; }
+.trend-icon {
+  flex-shrink: 0;
+}
 
 .status-msg {
   font-size: 10px;
@@ -257,23 +293,42 @@ onUnmounted(() => clearInterval(pollTimer))
   line-height: 1;
 }
 
-.success-msg { color: #5FBF24; }
+.success-msg {
+  color: #5fbf24;
+}
 
 /* Skeleton */
-.skeleton-card { gap: 6px; }
+.skeleton-card {
+  gap: 6px;
+}
 
 .skel {
-  background: #F3F4F6;
+  background: #f3f4f6;
   border-radius: 6px;
   animation: shimmer 1.5s infinite;
 }
 
-.skel-label { height: 10px; width: 60%; }
-.skel-value { height: 28px; width: 50%; }
-.skel-badge { height: 18px; width: 80%; border-radius: 4px; }
+.skel-label {
+  height: 10px;
+  width: 60%;
+}
+.skel-value {
+  height: 28px;
+  width: 50%;
+}
+.skel-badge {
+  height: 18px;
+  width: 80%;
+  border-radius: 4px;
+}
 
 @keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

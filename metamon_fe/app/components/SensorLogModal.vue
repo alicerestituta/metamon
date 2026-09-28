@@ -31,21 +31,41 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-defineEmits(['close'])
+defineEmits(['close']);
 
 const logs = ref([
-  { time: '21:56:40', node: 'NODE-08', message: 'Konsentrasi CH4 melebihi ambang batas: 45.2%', type: 'danger' },
+  {
+    time: '21:56:40',
+    node: 'NODE-08',
+    message: 'Konsentrasi CH4 melebihi ambang batas: 45.2%',
+    type: 'danger',
+  },
   { time: '21:55:12', node: 'NODE-08', message: 'Suhu permukaan naik ke 52°C', type: 'warning' },
-  { time: '21:50:00', node: 'NODE-03', message: 'Telemetri normal: CH4 18%, Temp 38°C', type: 'info' },
+  {
+    time: '21:50:00',
+    node: 'NODE-03',
+    message: 'Telemetri normal: CH4 18%, Temp 38°C',
+    type: 'info',
+  },
   { time: '21:45:30', node: 'NODE-12', message: 'Kalibrasi rutin selesai', type: 'info' },
-  { time: '21:40:15', node: 'SYSTEM', message: 'Sinkronisasi 24 Node Sensor berhasil', type: 'success' },
-  { time: '21:30:00', node: 'NODE-08', message: 'Hotspot terdeteksi pada koordinat (-6.892, 107.412)', type: 'danger' }
-])
+  {
+    time: '21:40:15',
+    node: 'SYSTEM',
+    message: 'Sinkronisasi 24 Node Sensor berhasil',
+    type: 'success',
+  },
+  {
+    time: '21:30:00',
+    node: 'NODE-08',
+    message: 'Hotspot terdeteksi pada koordinat (-6.892, 107.412)',
+    type: 'danger',
+  },
+]);
 
 function downloadLogs() {
-  alert('Export file log telemetri berhasil diunduh.')
+  alert('Export file log telemetri berhasil diunduh.');
 }
 </script>
 
@@ -135,13 +155,29 @@ function downloadLogs() {
   gap: 6px;
 }
 
-.log-entry.danger { border-left-color: var(--color-danger); color: #FFAAAA; }
-.log-entry.warning { border-left-color: var(--color-warning); color: #FFE088; }
-.log-entry.success { border-left-color: var(--color-success); color: #B3FF88; }
-.log-entry.info { border-left-color: #3B82F6; color: var(--text-main); }
+.log-entry.danger {
+  border-left-color: var(--color-danger);
+  color: #ffaaaa;
+}
+.log-entry.warning {
+  border-left-color: var(--color-warning);
+  color: #ffe088;
+}
+.log-entry.success {
+  border-left-color: var(--color-success);
+  color: #b3ff88;
+}
+.log-entry.info {
+  border-left-color: #3b82f6;
+  color: var(--text-main);
+}
 
-.log-time { color: var(--text-muted); }
-.log-node { font-weight: bold; }
+.log-time {
+  color: var(--text-muted);
+}
+.log-node {
+  font-weight: bold;
+}
 
 .modal-footer {
   padding: 12px 16px;

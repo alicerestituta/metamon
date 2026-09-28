@@ -9,7 +9,16 @@
         </div>
 
         <button class="fullscreen-btn" title="Layar Penuh" @click="toggleFullscreen">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#1F1F1F"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="15 3 21 3 21 9"></polyline>
             <polyline points="9 21 3 21 3 15"></polyline>
             <line x1="21" y1="3" x2="14" y2="10"></line>
@@ -20,8 +29,8 @@
 
       <!-- Sector Filter Chips -->
       <div class="filter-chips-row">
-        <button 
-          v-for="chip in chips" 
+        <button
+          v-for="chip in chips"
           :key="chip.id"
           :class="['chip-item', { active: activeFilter === chip.id }]"
           @click="activeFilter = chip.id"
@@ -32,7 +41,9 @@
 
       <!-- Map Viewport Frame -->
       <div class="map-viewport-card" :class="{ 'is-fullscreen': isFullscreen }">
-        <div v-if="isFullscreen" class="close-fullscreen-badge" @click="toggleFullscreen">&times; Tutup Peta</div>
+        <div v-if="isFullscreen" class="close-fullscreen-badge" @click="toggleFullscreen">
+          &times; Tutup Peta
+        </div>
 
         <div class="map-inner-canvas">
           <img src="/tpa_satellite_map.png" alt="Satellite Map TPA" class="map-bg-img" />
@@ -63,96 +74,209 @@
             </defs>
 
             <!-- Heatmap Radials -->
-            <ellipse v-if="showSector('B')" cx="220" cy="155" rx="80" ry="65" fill="url(#redGradient)" />
-            <ellipse v-if="showSector('C')" cx="80" cy="150" rx="60" ry="55" fill="url(#yellowGradient)" />
-            <ellipse v-if="showSector('D')" cx="150" cy="255" rx="75" ry="40" fill="url(#yellowGradient)" />
-            <ellipse v-if="showSector('A')" cx="225" cy="65" rx="65" ry="45" fill="url(#greenGradient)" />
+            <ellipse
+              v-if="showSector('B')"
+              cx="220"
+              cy="155"
+              rx="80"
+              ry="65"
+              fill="url(#redGradient)"
+            />
+            <ellipse
+              v-if="showSector('C')"
+              cx="80"
+              cy="150"
+              rx="60"
+              ry="55"
+              fill="url(#yellowGradient)"
+            />
+            <ellipse
+              v-if="showSector('D')"
+              cx="150"
+              cy="255"
+              rx="75"
+              ry="40"
+              fill="url(#yellowGradient)"
+            />
+            <ellipse
+              v-if="showSector('A')"
+              cx="225"
+              cy="65"
+              rx="65"
+              ry="45"
+              fill="url(#greenGradient)"
+            />
 
             <!-- Polygons -->
             <!-- Sektor A (Top Right) -->
-            <polygon 
+            <polygon
               v-if="showSector('A')"
-              points="160,15 305,25 295,100 155,90" 
+              points="160,15 305,25 295,100 155,90"
               class="sector-polygon sector-a"
               :class="{ highlighted: activeFilter === 'A' }"
               @click="activeFilter = 'A'"
             />
 
             <!-- Sektor B (Center Red) -->
-            <polygon 
+            <polygon
               v-if="showSector('B')"
-              points="155,98 310,108 300,210 145,195" 
+              points="155,98 310,108 300,210 145,195"
               class="sector-polygon sector-b"
               :class="{ highlighted: activeFilter === 'B' }"
               @click="activeFilter = 'B'"
             />
 
             <!-- Sektor C (Left Yellow) -->
-            <polygon 
+            <polygon
               v-if="showSector('C')"
-              points="15,105 148,95 138,200 10,195" 
+              points="15,105 148,95 138,200 10,195"
               class="sector-polygon sector-c"
               :class="{ highlighted: activeFilter === 'C' }"
               @click="activeFilter = 'C'"
             />
 
             <!-- Sektor D (Bottom Yellow) -->
-            <polygon 
+            <polygon
               v-if="showSector('D')"
-              points="10,205 295,218 285,298 5,290" 
+              points="10,205 295,218 285,298 5,290"
               class="sector-polygon sector-d"
               :class="{ highlighted: activeFilter === 'D' }"
               @click="activeFilter = 'D'"
             />
 
             <!-- Sector Badges -->
-            <g v-if="showSector('A')" transform="translate(225, 55)" class="sector-badge-group" @click="activeFilter = 'A'">
+            <g
+              v-if="showSector('A')"
+              transform="translate(225, 55)"
+              class="sector-badge-group"
+              @click="activeFilter = 'A'"
+            >
               <rect x="-38" y="-12" width="76" height="24" rx="5" fill="rgba(5, 118, 2, 0.9)" />
-              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="800">Sektor A</text>
-              <text text-anchor="middle" y="8" fill="#E2F7D9" font-size="7.5" font-weight="600">Aman (190 ppm)</text>
+              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="800">
+                Sektor A
+              </text>
+              <text text-anchor="middle" y="8" fill="#E2F7D9" font-size="7.5" font-weight="600">
+                Aman (190 ppm)
+              </text>
             </g>
 
-            <g v-if="showSector('B')" transform="translate(220, 155)" class="sector-badge-group" @click="activeFilter = 'B'">
+            <g
+              v-if="showSector('B')"
+              transform="translate(220, 155)"
+              class="sector-badge-group"
+              @click="activeFilter = 'B'"
+            >
               <rect x="-48" y="-13" width="96" height="25" rx="5" fill="rgba(203, 5, 37, 0.92)" />
-              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="900">Sektor B</text>
-              <text text-anchor="middle" y="8" fill="#FFD0D0" font-size="7.5" font-weight="700">Bahaya (1.490 ppm)</text>
+              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="900">
+                Sektor B
+              </text>
+              <text text-anchor="middle" y="8" fill="#FFD0D0" font-size="7.5" font-weight="700">
+                Bahaya (1.490 ppm)
+              </text>
             </g>
 
-            <g v-if="showSector('C')" transform="translate(75, 150)" class="sector-badge-group" @click="activeFilter = 'C'">
+            <g
+              v-if="showSector('C')"
+              transform="translate(75, 150)"
+              class="sector-badge-group"
+              @click="activeFilter = 'C'"
+            >
               <rect x="-42" y="-12" width="84" height="24" rx="5" fill="rgba(217, 119, 6, 0.92)" />
-              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="800">Sektor C</text>
-              <text text-anchor="middle" y="8" fill="#FFFBEB" font-size="7.5" font-weight="600">Waspada (910 ppm)</text>
+              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="800">
+                Sektor C
+              </text>
+              <text text-anchor="middle" y="8" fill="#FFFBEB" font-size="7.5" font-weight="600">
+                Waspada (910 ppm)
+              </text>
             </g>
 
-            <g v-if="showSector('D')" transform="translate(150, 255)" class="sector-badge-group" @click="activeFilter = 'D'">
+            <g
+              v-if="showSector('D')"
+              transform="translate(150, 255)"
+              class="sector-badge-group"
+              @click="activeFilter = 'D'"
+            >
               <rect x="-42" y="-12" width="84" height="24" rx="5" fill="rgba(217, 119, 6, 0.92)" />
-              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="800">Sektor D</text>
-              <text text-anchor="middle" y="8" fill="#FFFBEB" font-size="7.5" font-weight="600">Waspada (800 ppm)</text>
+              <text text-anchor="middle" y="-1" fill="#FFF" font-size="9.5" font-weight="800">
+                Sektor D
+              </text>
+              <text text-anchor="middle" y="8" fill="#FFFBEB" font-size="7.5" font-weight="600">
+                Waspada (800 ppm)
+              </text>
             </g>
 
             <!-- Sensor Pins -->
             <g v-if="showSector('B')">
-              <circle cx="215" cy="130" r="4.5" fill="#CB0525" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="185" cy="145" r="4.5" fill="#CB0525" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="260" cy="155" r="4.5" fill="#CB0525" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="170" cy="125" r="4.5" fill="#CB0525" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle
+                cx="215"
+                cy="130"
+                r="4.5"
+                fill="#CB0525"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="185"
+                cy="145"
+                r="4.5"
+                fill="#CB0525"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="260"
+                cy="155"
+                r="4.5"
+                fill="#CB0525"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="170"
+                cy="125"
+                r="4.5"
+                fill="#CB0525"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
             </g>
 
             <g v-if="showSector('C')">
-              <circle cx="70" cy="125" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="45" cy="170" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="115" cy="160" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="70" cy="125" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+              <circle cx="45" cy="170" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+              <circle
+                cx="115"
+                cy="160"
+                r="4.5"
+                fill="#F59E0B"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
             </g>
 
             <g v-if="showSector('D')">
-              <circle cx="65" cy="245" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="190" cy="265" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="240" cy="250" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="65" cy="245" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+              <circle
+                cx="190"
+                cy="265"
+                r="4.5"
+                fill="#F59E0B"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="240"
+                cy="250"
+                r="4.5"
+                fill="#F59E0B"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+              />
             </g>
 
             <g v-if="showSector('A')">
-              <circle cx="195" cy="45" r="4.5" fill="#5FBF24" stroke="#FFFFFF" stroke-width="1.5"/>
-              <circle cx="265" cy="55" r="4.5" fill="#5FBF24" stroke="#FFFFFF" stroke-width="1.5"/>
+              <circle cx="195" cy="45" r="4.5" fill="#5FBF24" stroke="#FFFFFF" stroke-width="1.5" />
+              <circle cx="265" cy="55" r="4.5" fill="#5FBF24" stroke="#FFFFFF" stroke-width="1.5" />
             </g>
           </svg>
         </div>
@@ -162,26 +286,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-const isFullscreen = ref(false)
-const activeFilter = ref('all')
+const isFullscreen = ref(false);
+const activeFilter = ref('all');
 
 const chips = [
   { id: 'all', name: 'Semua' },
   { id: 'A', name: 'Sektor A' },
   { id: 'B', name: 'Sektor B' },
   { id: 'C', name: 'Sektor C' },
-  { id: 'D', name: 'Sektor D' }
-]
+  { id: 'D', name: 'Sektor D' },
+];
 
 function showSector(sectorId) {
-  if (activeFilter.value === 'all') return true
-  return activeFilter.value === sectorId
+  if (activeFilter.value === 'all') return true;
+  return activeFilter.value === sectorId;
 }
 
 function toggleFullscreen() {
-  isFullscreen.value = !isFullscreen.value
+  isFullscreen.value = !isFullscreen.value;
 }
 </script>
 
@@ -192,8 +316,8 @@ function toggleFullscreen() {
 }
 
 .spatial-map-wrapper-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
@@ -216,7 +340,7 @@ function toggleFullscreen() {
 .section-title {
   font-size: 18px;
   font-weight: 800;
-  color: #1F1F1F;
+  color: #1f1f1f;
   line-height: 1.2;
   letter-spacing: -0.3px;
   margin: 0;
@@ -225,15 +349,15 @@ function toggleFullscreen() {
 .section-subtitle {
   font-size: 12px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
   margin: 0;
 }
 
 .fullscreen-btn {
   width: 32px;
   height: 32px;
-  background: #F4F4F6;
-  border: 1px solid #E5E7EB;
+  background: #f4f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -244,7 +368,7 @@ function toggleFullscreen() {
 }
 
 .fullscreen-btn:hover {
-  background: #E5E7EB;
+  background: #e5e7eb;
 }
 
 .filter-chips-row {
@@ -255,12 +379,14 @@ function toggleFullscreen() {
   scrollbar-width: none;
   margin-bottom: 12px;
 }
-.filter-chips-row::-webkit-scrollbar { display: none; }
+.filter-chips-row::-webkit-scrollbar {
+  display: none;
+}
 
 .chip-item {
-  background: #F3F4F6;
-  border: 1px solid #E5E7EB;
-  color: #4B5563;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
@@ -272,7 +398,7 @@ function toggleFullscreen() {
 
 .chip-item.active {
   background: #057602;
-  color: #FFFFFF;
+  color: #ffffff;
   border-color: #057602;
   box-shadow: 0 2px 6px rgba(5, 118, 2, 0.25);
 }
@@ -280,8 +406,8 @@ function toggleFullscreen() {
 .fullscreen-btn {
   width: 32px;
   height: 32px;
-  background: #F4F4F6;
-  border: 1px solid #E5E7EB;
+  background: #f4f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -292,7 +418,7 @@ function toggleFullscreen() {
 }
 
 .fullscreen-btn:hover {
-  background: #E5E7EB;
+  background: #e5e7eb;
 }
 
 /* Map Viewport Frame */
@@ -301,7 +427,7 @@ function toggleFullscreen() {
   background: #000000;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 .map-viewport-card.is-fullscreen {
@@ -316,7 +442,7 @@ function toggleFullscreen() {
   top: 12px;
   right: 12px;
   background: rgba(0, 0, 0, 0.85);
-  color: #FFFFFF;
+  color: #ffffff;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
@@ -354,8 +480,8 @@ function toggleFullscreen() {
   gap: 12px;
   font-size: 11px;
   font-weight: 700;
-  color: #1F1F1F;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  color: #1f1f1f;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   z-index: 10;
 }
 
@@ -370,9 +496,15 @@ function toggleFullscreen() {
   height: 8px;
   border-radius: 50%;
 }
-.green-dot { background: #057602; }
-.yellow-dot { background: #F59E0B; }
-.red-dot { background: #CB0525; }
+.green-dot {
+  background: #057602;
+}
+.yellow-dot {
+  background: #f59e0b;
+}
+.red-dot {
+  background: #cb0525;
+}
 
 .svg-map-layer {
   position: absolute;
@@ -388,12 +520,29 @@ function toggleFullscreen() {
   transition: all 0.2s ease;
 }
 
-.sector-polygon.sector-a { fill: rgba(95, 191, 36, 0.25); stroke: #5FBF24; stroke-width: 1.8; }
-.sector-polygon.sector-b { fill: rgba(203, 5, 37, 0.35); stroke: #CB0525; stroke-width: 2.2; }
-.sector-polygon.sector-c { fill: rgba(245, 158, 11, 0.25); stroke: #F59E0B; stroke-width: 1.8; }
-.sector-polygon.sector-d { fill: rgba(245, 158, 11, 0.25); stroke: #F59E0B; stroke-width: 1.8; }
+.sector-polygon.sector-a {
+  fill: rgba(95, 191, 36, 0.25);
+  stroke: #5fbf24;
+  stroke-width: 1.8;
+}
+.sector-polygon.sector-b {
+  fill: rgba(203, 5, 37, 0.35);
+  stroke: #cb0525;
+  stroke-width: 2.2;
+}
+.sector-polygon.sector-c {
+  fill: rgba(245, 158, 11, 0.25);
+  stroke: #f59e0b;
+  stroke-width: 1.8;
+}
+.sector-polygon.sector-d {
+  fill: rgba(245, 158, 11, 0.25);
+  stroke: #f59e0b;
+  stroke-width: 1.8;
+}
 
-.sector-polygon:hover, .sector-polygon.highlighted {
+.sector-polygon:hover,
+.sector-polygon.highlighted {
   filter: brightness(1.2);
   stroke-width: 3px;
 }

@@ -19,11 +19,7 @@
       </div>
 
       <div v-else class="sector-item-list">
-        <div
-          v-for="sector in sectors"
-          :key="sector.id"
-          class="sector-row-item"
-        >
+        <div v-for="sector in sectors" :key="sector.id" class="sector-row-item">
           <div class="item-left-content">
             <div class="badge-square" :class="badgeClass(sector.status)">
               {{ sector.sectorCode }}
@@ -31,7 +27,9 @@
             <div class="sector-text-details">
               <h3 class="sector-name">{{ sector.name }}</h3>
               <p class="sector-metric-line">Kapasitas Buang: {{ sector.capacityPercent }}%</p>
-              <p class="sector-metric-line">CH<sub>4</sub>: {{ formatCh4(sector.currentCh4Ppm) }}</p>
+              <p class="sector-metric-line">
+                CH<sub>4</sub>: {{ formatCh4(sector.currentCh4Ppm) }}
+              </p>
             </div>
           </div>
 
@@ -45,53 +43,57 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const { getSectors } = useApi()
+const { getSectors } = useApi();
 
-const loading  = ref(true)
-const sectors  = ref([])
-const lastFetch = ref(null)
-let pollTimer  = null
+const loading = ref(true);
+const sectors = ref([]);
+const lastFetch = ref(null);
+let pollTimer = null;
 
 const updatedLabel = computed(() => {
-  if (!lastFetch.value) return 'Memuat...'
-  const diff = Math.round((Date.now() - lastFetch.value) / 1000)
-  if (diff < 60) return `Update: ${diff} dtk lalu`
-  return `Update: ${Math.round(diff / 60)} mnt lalu`
-})
+  if (!lastFetch.value) return 'Memuat...';
+  const diff = Math.round((Date.now() - lastFetch.value) / 1000);
+  if (diff < 60) return `Update: ${diff} dtk lalu`;
+  return `Update: ${Math.round(diff / 60)} mnt lalu`;
+});
 
 function badgeClass(status) {
-  if (status === 'danger' || status === 'locked') return 'red'
-  if (status === 'warning') return 'yellow'
-  return 'green'
+  if (status === 'danger' || status === 'locked') return 'red';
+  if (status === 'warning') return 'yellow';
+  return 'green';
 }
 
 function statusLabel(status) {
-  const map = { normal: 'Aman', warning: 'Waspada', danger: 'Bahaya', locked: 'Terkunci' }
-  return map[status] ?? status
+  const map = { normal: 'Aman', warning: 'Waspada', danger: 'Bahaya', locked: 'Terkunci' };
+  return map[status] ?? status;
 }
 
 function formatCh4(ppm) {
-  if (ppm == null) return '—'
-  return ppm >= 1000 ? `${(ppm / 1000).toFixed(2).replace('.', '.')} kppm` : `${Math.round(ppm)} ppm`
+  if (ppm == null) return '—';
+  return ppm >= 1000
+    ? `${(ppm / 1000).toFixed(2).replace('.', '.')} kppm`
+    : `${Math.round(ppm)} ppm`;
 }
 
 async function fetchSectors() {
   try {
-    const res = await getSectors()
-    sectors.value = res.data
-    lastFetch.value = Date.now()
-  } catch {}
-  finally { loading.value = false }
+    const res = await getSectors();
+    sectors.value = res.data;
+    lastFetch.value = Date.now();
+  } catch {
+  } finally {
+    loading.value = false;
+  }
 }
 
 onMounted(() => {
-  fetchSectors()
-  pollTimer = setInterval(fetchSectors, 15000)
-})
+  fetchSectors();
+  pollTimer = setInterval(fetchSectors, 15000);
+});
 
-onUnmounted(() => clearInterval(pollTimer))
+onUnmounted(() => clearInterval(pollTimer));
 </script>
 
 <style scoped>
@@ -101,8 +103,8 @@ onUnmounted(() => clearInterval(pollTimer))
 }
 
 .sector-status-wrapper-card {
-  background: #FFFFFF;
-  border: 1px solid #EBEBEB;
+  background: #ffffff;
+  border: 1px solid #ebebeb;
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
@@ -118,7 +120,7 @@ onUnmounted(() => clearInterval(pollTimer))
 .section-title {
   font-size: 18px;
   font-weight: 800;
-  color: #1F1F1F;
+  color: #1f1f1f;
   line-height: 1.2;
   letter-spacing: -0.3px;
 }
@@ -126,7 +128,7 @@ onUnmounted(() => clearInterval(pollTimer))
 .update-label {
   font-size: 12px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
 }
 
 .sector-item-list {
@@ -136,8 +138,8 @@ onUnmounted(() => clearInterval(pollTimer))
 }
 
 .sector-row-item {
-  background: #FFFFFF;
-  border: 1px solid #EAEAEA;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
@@ -165,9 +167,18 @@ onUnmounted(() => clearInterval(pollTimer))
   flex-shrink: 0;
 }
 
-.badge-square.green  { background: #057602; color: #FFFFFF; }
-.badge-square.red    { background: #CB0525; color: #FFFFFF; }
-.badge-square.yellow { background: #F59E0B; color: #1F1F1F; }
+.badge-square.green {
+  background: #057602;
+  color: #ffffff;
+}
+.badge-square.red {
+  background: #cb0525;
+  color: #ffffff;
+}
+.badge-square.yellow {
+  background: #f59e0b;
+  color: #1f1f1f;
+}
 
 .sector-text-details {
   display: flex;
@@ -178,14 +189,14 @@ onUnmounted(() => clearInterval(pollTimer))
 .sector-name {
   font-size: 14px;
   font-weight: 800;
-  color: #1F1F1F;
+  color: #1f1f1f;
   line-height: 1.2;
 }
 
 .sector-metric-line {
   font-size: 11px;
   font-weight: 400;
-  color: #6C6C6C;
+  color: #6c6c6c;
   line-height: 1.3;
 }
 
@@ -202,27 +213,63 @@ onUnmounted(() => clearInterval(pollTimer))
   white-space: nowrap;
 }
 
-.status-pill-badge.green  { background: #057602; color: #FFFFFF; }
-.status-pill-badge.red    { background: #CB0525; color: #FFFFFF; }
-.status-pill-badge.yellow { background: #F59E0B; color: #1F1F1F; }
+.status-pill-badge.green {
+  background: #057602;
+  color: #ffffff;
+}
+.status-pill-badge.red {
+  background: #cb0525;
+  color: #ffffff;
+}
+.status-pill-badge.yellow {
+  background: #f59e0b;
+  color: #1f1f1f;
+}
 
 /* Skeleton */
-.skeleton-row { gap: 12px; }
+.skeleton-row {
+  gap: 12px;
+}
 
 .skel {
-  background: #F3F4F6;
+  background: #f3f4f6;
   border-radius: 6px;
   animation: shimmer 1.5s infinite;
 }
 
-.skel-sq { width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0; }
-.skel-lines { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.skel-line-l { height: 14px; width: 60%; }
-.skel-line-s { height: 10px; width: 40%; }
-.skel-pill { height: 22px; width: 70px; border-radius: 4px; }
+.skel-sq {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.skel-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.skel-line-l {
+  height: 14px;
+  width: 60%;
+}
+.skel-line-s {
+  height: 10px;
+  width: 40%;
+}
+.skel-pill {
+  height: 22px;
+  width: 70px;
+  border-radius: 4px;
+}
 
 @keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

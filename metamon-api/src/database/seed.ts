@@ -28,10 +28,34 @@ async function seed() {
 
   // SECTORS
   const sectorData = [
-    { sectorCode: 'A', name: 'Sektor A', capacityPercent: 42, status: 'normal', isAcceptingTrucks: true },
-    { sectorCode: 'B', name: 'Sektor B', capacityPercent: 100, status: 'locked', isAcceptingTrucks: false },
-    { sectorCode: 'C', name: 'Sektor C', capacityPercent: 60, status: 'warning', isAcceptingTrucks: true },
-    { sectorCode: 'D', name: 'Sektor D', capacityPercent: 68, status: 'warning', isAcceptingTrucks: true },
+    {
+      sectorCode: 'A',
+      name: 'Sektor A',
+      capacityPercent: 42,
+      status: 'normal',
+      isAcceptingTrucks: true,
+    },
+    {
+      sectorCode: 'B',
+      name: 'Sektor B',
+      capacityPercent: 100,
+      status: 'locked',
+      isAcceptingTrucks: false,
+    },
+    {
+      sectorCode: 'C',
+      name: 'Sektor C',
+      capacityPercent: 60,
+      status: 'warning',
+      isAcceptingTrucks: true,
+    },
+    {
+      sectorCode: 'D',
+      name: 'Sektor D',
+      capacityPercent: 68,
+      status: 'warning',
+      isAcceptingTrucks: true,
+    },
   ];
   const sectors = await sectorRepo.save(sectorData);
   const sectorMap = Object.fromEntries(sectors.map((s: any) => [s.sectorCode, s]));
@@ -78,8 +102,18 @@ async function seed() {
 
   // TRUCKS
   await truckRepo.save([
-    { plateNumber: 'B 9812 UOX', originalSectorId: sectorMap['B'].id, reroutedSectorId: sectorMap['C'].id, isRerouted: true },
-    { plateNumber: 'B 5729 UOX', originalSectorId: sectorMap['B'].id, reroutedSectorId: sectorMap['C'].id, isRerouted: true },
+    {
+      plateNumber: 'B 9812 UOX',
+      originalSectorId: sectorMap['B'].id,
+      reroutedSectorId: sectorMap['C'].id,
+      isRerouted: true,
+    },
+    {
+      plateNumber: 'B 5729 UOX',
+      originalSectorId: sectorMap['B'].id,
+      reroutedSectorId: sectorMap['C'].id,
+      isRerouted: true,
+    },
     { plateNumber: 'B 3411 UOX', originalSectorId: sectorMap['A'].id, isRerouted: false },
     { plateNumber: 'B 9102 KAA', originalSectorId: sectorMap['D'].id, isRerouted: false },
   ]);
@@ -87,8 +121,18 @@ async function seed() {
 
   // SOP TASKS
   await taskRepo.save([
-    { title: 'Sterilisasi Perimeter Zona Merah (Radius 50m)', isCompleted: true, completedAt: new Date('2026-09-27T10:14:00'), orderIndex: 1 },
-    { title: 'Pengalihan Lalu Lintas Truk ke Sektor C', isCompleted: true, completedAt: new Date('2026-09-27T10:18:00'), orderIndex: 2 },
+    {
+      title: 'Sterilisasi Perimeter Zona Merah (Radius 50m)',
+      isCompleted: true,
+      completedAt: new Date('2026-09-27T10:14:00'),
+      orderIndex: 1,
+    },
+    {
+      title: 'Pengalihan Lalu Lintas Truk ke Sektor C',
+      isCompleted: true,
+      completedAt: new Date('2026-09-27T10:18:00'),
+      orderIndex: 2,
+    },
     { title: 'Eksekusi Aerasi Sampah (Pengerukan Ekskavator)', isCompleted: false, orderIndex: 3 },
     { title: 'Injeksi Air Pendingin ke Pipa Sensor', isCompleted: false, orderIndex: 4 },
   ]);

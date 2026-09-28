@@ -18,7 +18,10 @@
             <div class="step-num danger">1</div>
             <div class="step-content">
               <h4>Aktivasi Gas Venting & Methane Flare</h4>
-              <p>Segera aktifkan katup pembuangan gas otomatis pada Sektor B untuk mengurangi tekanan konsentrasi metana (>40%).</p>
+              <p>
+                Segera aktifkan katup pembuangan gas otomatis pada Sektor B untuk mengurangi tekanan
+                konsentrasi metana (>40%).
+              </p>
             </div>
           </div>
 
@@ -26,7 +29,10 @@
             <div class="step-num warning">2</div>
             <div class="step-content">
               <h4>Pembatasan Akses Sektor B</h4>
-              <p>Isolasi area radius 200 meter dari Sektor B. Petugas lapangan wajib mengenakan respirator gas metana.</p>
+              <p>
+                Isolasi area radius 200 meter dari Sektor B. Petugas lapangan wajib mengenakan
+                respirator gas metana.
+              </p>
             </div>
           </div>
 
@@ -34,7 +40,10 @@
             <div class="step-num info">3</div>
             <div class="step-content">
               <h4>Penimbunan Tanah Penutup (Soil Capping)</h4>
-              <p>Siapkan armada bulldozer untuk pemadatan tanah penutup apabila suhu lokasi melebihi 60°C.</p>
+              <p>
+                Siapkan armada bulldozer untuk pemadatan tanah penutup apabila suhu lokasi melebihi
+                60°C.
+              </p>
             </div>
           </div>
 
@@ -42,7 +51,10 @@
             <div class="step-num primary">4</div>
             <div class="step-content">
               <h4>Notifikasi Tim Pemadam Kebakaran & BPBD</h4>
-              <p>Hubungi Posko Tanggap Darurat BPBD Kab. Bandung Barat jika konsentrasi gas bertahan tinggi selama 2 jam.</p>
+              <p>
+                Hubungi Posko Tanggap Darurat BPBD Kab. Bandung Barat jika konsentrasi gas bertahan
+                tinggi selama 2 jam.
+              </p>
             </div>
           </div>
         </div>
@@ -57,10 +69,10 @@
 </template>
 
 <script setup>
-defineEmits(['close'])
+defineEmits(['close']);
 
 function triggerAlert() {
-  alert('Peringatan Dini (Alert Broadcast) telah dikirimkan ke Tim Operasional TPA & Damkar.')
+  alert('Peringatan Dini (Alert Broadcast) telah dikirimkan ke Tim Operasional TPA & Damkar.');
 }
 </script>
 
@@ -165,10 +177,22 @@ function triggerAlert() {
   flex-shrink: 0;
 }
 
-.step-num.danger { background: var(--color-danger); color: #fff; }
-.step-num.warning { background: var(--color-warning); color: #000; }
-.step-num.info { background: #3B82F6; color: #fff; }
-.step-num.primary { background: var(--color-brand); color: #fff; }
+.step-num.danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.step-num.warning {
+  background: var(--color-warning);
+  color: #000;
+}
+.step-num.info {
+  background: #3b82f6;
+  color: #fff;
+}
+.step-num.primary {
+  background: var(--color-brand);
+  color: #fff;
+}
 
 .step-content h4 {
   font-size: 13px;

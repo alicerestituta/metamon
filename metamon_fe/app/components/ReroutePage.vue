@@ -15,13 +15,13 @@
 
         <!-- 4 Sector Choice Cards -->
         <div class="sector-choice-grid">
-          <div 
-            v-for="sec in sectorChoices" 
+          <div
+            v-for="sec in sectorChoices"
             :key="sec.id"
             class="sector-choice-card"
-            :class="{ 
+            :class="{
               active: selectedTargetSector === sec.id,
-              disabled: sec.disabled 
+              disabled: sec.disabled,
             }"
             @click="selectSector(sec)"
           >
@@ -33,9 +33,7 @@
         </div>
 
         <!-- Action Execution Button -->
-        <button class="execute-btn" @click="handleExecuteReroute">
-          Eksekusi Pengalihan Kuota
-        </button>
+        <button class="execute-btn" @click="handleExecuteReroute">Eksekusi Pengalihan Kuota</button>
       </div>
     </section>
 
@@ -46,11 +44,7 @@
       </div>
 
       <div class="sector-load-grid">
-        <div 
-          v-for="sec in sectorLoads" 
-          :key="sec.id"
-          class="sector-load-card"
-        >
+        <div v-for="sec in sectorLoads" :key="sec.id" class="sector-load-card">
           <div class="load-card-header">
             <div class="load-title-group">
               <h3 class="load-sector-name">{{ sec.name }}</h3>
@@ -61,8 +55,8 @@
 
           <!-- Load Progress Bar -->
           <div class="load-progress-track">
-            <div 
-              class="load-progress-fill" 
+            <div
+              class="load-progress-fill"
               :class="sec.statusType"
               :style="{ width: sec.progressWidth + '%' }"
             ></div>
@@ -85,22 +79,22 @@
 
       <!-- Filter Tabs -->
       <div class="filter-tabs-wrapper">
-        <button 
-          class="tab-pill" 
+        <button
+          class="tab-pill"
           :class="{ active: activeTab === 'all' }"
           @click="activeTab = 'all'"
         >
           Semua ({{ totalCount }})
         </button>
-        <button 
-          class="tab-pill" 
+        <button
+          class="tab-pill"
           :class="{ active: activeTab === 'rerouted' }"
           @click="activeTab = 'rerouted'"
         >
           Dialihkan ({{ reroutedCount }})
         </button>
-        <button 
-          class="tab-pill" 
+        <button
+          class="tab-pill"
           :class="{ active: activeTab === 'normal' }"
           @click="activeTab = 'normal'"
         >
@@ -110,25 +104,29 @@
 
       <!-- Search Input -->
       <div class="search-input-box">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2.2" stroke-linecap="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#9CA3AF"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        >
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Cari plat nomor..." 
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Cari plat nomor..."
           class="search-input"
         />
       </div>
 
       <!-- Truck Vehicle Cards List -->
       <div class="truck-list">
-        <div 
-          v-for="truck in filteredTrucks" 
-          :key="truck.id"
-          class="truck-card"
-        >
+        <div v-for="truck in filteredTrucks" :key="truck.id" class="truck-card">
           <div class="truck-card-header">
             <span class="plate-number">{{ truck.plate }}</span>
             <span class="truck-status-badge" :class="truck.isRerouted ? 'rerouted' : 'normal'">
@@ -140,7 +138,16 @@
           <div class="route-box">
             <template v-if="truck.isRerouted">
               <span class="route-origin">Tujuan: {{ truck.originalTarget }}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6B7280"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
@@ -155,8 +162,12 @@
           <div v-if="truck.isRerouted" class="truck-action-row">
             <span class="action-label">Ubah Pengalihan:</span>
             <div class="action-btn-group">
-              <button class="shift-btn" @click="changeTruckTarget(truck, 'Sektor A')">Pindah ke A</button>
-              <button class="shift-btn" @click="changeTruckTarget(truck, 'Sektor D')">Pindah ke D</button>
+              <button class="shift-btn" @click="changeTruckTarget(truck, 'Sektor A')">
+                Pindah ke A
+              </button>
+              <button class="shift-btn" @click="changeTruckTarget(truck, 'Sektor D')">
+                Pindah ke D
+              </button>
             </div>
           </div>
         </div>
@@ -176,101 +187,103 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue';
 
-const { getSectors, getTrucks, rerouteBulk, rerouteTruck } = useApi()
-const toast = useToast()
+const { getSectors, getTrucks, rerouteBulk, rerouteTruck } = useApi();
+const toast = useToast();
 
-const selectedTargetSector = ref('') // ex: 'A'
+const selectedTargetSector = ref(''); // ex: 'A'
 
-const rawSectors = ref([])
-const rawTrucks = ref([])
-const totalCount = ref(0)
-const reroutedCount = ref(0)
-const normalCount = ref(0)
+const rawSectors = ref([]);
+const rawTrucks = ref([]);
+const totalCount = ref(0);
+const reroutedCount = ref(0);
+const normalCount = ref(0);
 
-const activeTab = ref('all')
-const searchQuery = ref('')
+const activeTab = ref('all');
+const searchQuery = ref('');
 
 async function fetchData() {
   try {
-    const s = await getSectors()
-    rawSectors.value = s.data
+    const s = await getSectors();
+    rawSectors.value = s.data;
 
     if (!selectedTargetSector.value) {
-      const avail = rawSectors.value.find(sec => sec.status !== 'locked' && sec.status !== 'danger')
-      if (avail) selectedTargetSector.value = avail.sectorCode
+      const avail = rawSectors.value.find(
+        (sec) => sec.status !== 'locked' && sec.status !== 'danger',
+      );
+      if (avail) selectedTargetSector.value = avail.sectorCode;
     }
 
-    const q = { limit: 50 }
-    if (activeTab.value !== 'all') q.status = activeTab.value
-    if (searchQuery.value) q.search = searchQuery.value
+    const q = { limit: 50 };
+    if (activeTab.value !== 'all') q.status = activeTab.value;
+    if (searchQuery.value) q.search = searchQuery.value;
 
-    const t = await getTrucks(q)
-    rawTrucks.value = t.data.trucks
-    totalCount.value = t.data.summary.total
-    reroutedCount.value = t.data.summary.reroutedCount
-    normalCount.value = t.data.summary.normalCount
+    const t = await getTrucks(q);
+    rawTrucks.value = t.data.trucks;
+    totalCount.value = t.data.summary.total;
+    reroutedCount.value = t.data.summary.reroutedCount;
+    normalCount.value = t.data.summary.normalCount;
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 }
 
 watch([activeTab, searchQuery], () => {
-  fetchData()
-})
+  fetchData();
+});
 
 const sectorChoices = computed(() => {
-  return rawSectors.value.map(s => ({
+  return rawSectors.value.map((s) => ({
     id: s.sectorCode,
     name: s.name,
     capacity: `${s.capacityPercent}%`,
-    disabled: s.status === 'locked' || s.status === 'danger'
-  }))
-})
+    disabled: s.status === 'locked' || s.status === 'danger',
+  }));
+});
 
 const sectorLoads = computed(() => {
-  return rawSectors.value.map(s => ({
+  return rawSectors.value.map((s) => ({
     id: s.id,
     name: s.name,
     statusLabel: s.statusLabel,
     statusType: s.status,
     capacityPercent: s.capacityPercent,
     progressWidth: s.capacityPercent,
-    ch4Value: s.currentCh4Ppm ? s.currentCh4Ppm.toLocaleString('id-ID') : '0'
-  }))
-})
+    ch4Value: s.currentCh4Ppm ? s.currentCh4Ppm.toLocaleString('id-ID') : '0',
+  }));
+});
 
 const filteredTrucks = computed(() => {
-  return rawTrucks.value.map(t => ({
+  return rawTrucks.value.map((t) => ({
     id: t.id,
     plate: t.plateNumber,
     isRerouted: t.isRerouted,
     originalTarget: t.originalSector?.name || '?',
-    reroutedTarget: t.reroutedSector?.name || ''
-  }))
-})
+    reroutedTarget: t.reroutedSector?.name || '',
+  }));
+});
 
 function selectSector(sec) {
-  if (sec.disabled) return
-  selectedTargetSector.value = sec.id
+  if (sec.disabled) return;
+  selectedTargetSector.value = sec.id;
 }
 
 async function handleExecuteReroute() {
-  if (!selectedTargetSector.value) return
-  
-  const source = rawSectors.value.find(s => s.status === 'locked' || s.status === 'danger')
+  if (!selectedTargetSector.value) return;
+
+  const source = rawSectors.value.find((s) => s.status === 'locked' || s.status === 'danger');
   if (!source) {
-    toast.warning('Tidak ada sektor yang sedang kelebihan kapasitas untuk dialihkan.')
-    return
+    toast.warning('Tidak ada sektor yang sedang kelebihan kapasitas untuk dialihkan.');
+    return;
   }
-  
+
   try {
-    await rerouteBulk({ 
-      fromSectorCode: source.sectorCode, 
-      toSectorCode: selectedTargetSector.value 
-    })
-    await fetchData()
+    await rerouteBulk({
+      fromSectorCode: source.sectorCode,
+      toSectorCode: selectedTargetSector.value,
+    });
+    await fetchData();
   } catch {
     // error already shown via useApi toast
   }
@@ -278,19 +291,19 @@ async function handleExecuteReroute() {
 
 async function changeTruckTarget(truck, newTargetName) {
   try {
-    const sectorCode = newTargetName.replace('Sektor ', '')
-    const res = await rerouteTruck(truck.id, { toSectorCode: sectorCode })
-    toast.success(res.message || `Rute armada ${truck.plate} berhasil dipindahkan.`)
-    await fetchData()
+    const sectorCode = newTargetName.replace('Sektor ', '');
+    const res = await rerouteTruck(truck.id, { toSectorCode: sectorCode });
+    toast.success(res.message || `Rute armada ${truck.plate} berhasil dipindahkan.`);
+    await fetchData();
   } catch {
     // error already shown via useApi toast
   }
 }
 
 onMounted(() => {
-  fetchData()
-  setInterval(fetchData, 10000)
-})
+  fetchData();
+  setInterval(fetchData, 10000);
+});
 </script>
 
 <style scoped>
@@ -307,8 +320,8 @@ onMounted(() => {
 
 /* Shared Card Styling */
 .reroute-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
@@ -333,14 +346,14 @@ onMounted(() => {
 
 .card-subtext {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
 }
 
 /* Section 1: Intervention Box */
 .intervention-box {
-  background: #F8F9FA;
-  border: 1px solid #F3F4F6;
+  background: #f8f9fa;
+  border: 1px solid #f3f4f6;
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -363,7 +376,7 @@ onMounted(() => {
 
 .box-sublabel {
   font-size: 11.5px;
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 /* Sector Choice Grid */
@@ -374,8 +387,8 @@ onMounted(() => {
 }
 
 .sector-choice-card {
-  background: #FFFFFF;
-  border: 1.5px solid #E5E7EB;
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
   border-radius: 10px;
   padding: 12px 8px;
   display: flex;
@@ -398,8 +411,8 @@ onMounted(() => {
 }
 
 .sector-choice-card.disabled {
-  background: #EFEFEF;
-  border-color: #E5E7EB;
+  background: #efefef;
+  border-color: #e5e7eb;
   cursor: not-allowed;
   opacity: 0.65;
 }
@@ -407,17 +420,17 @@ onMounted(() => {
 .choice-name {
   font-size: 13.5px;
   font-weight: 800;
-  color: #1F2937;
+  color: #1f2937;
 }
 
 .choice-capacity {
   font-size: 11px;
-  color: #6B7280;
+  color: #6b7280;
   font-weight: 600;
 }
 
 .choice-capacity.danger {
-  color: #CB0525;
+  color: #cb0525;
 }
 
 /* Execute Button */
@@ -425,13 +438,15 @@ onMounted(() => {
   width: 100%;
   height: 42px;
   background: #057602;
-  color: #FFFFFF;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   font-size: 13.5px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
   box-shadow: 0 2px 6px rgba(5, 118, 2, 0.25);
 }
 
@@ -448,8 +463,8 @@ onMounted(() => {
 }
 
 .sector-load-card {
-  background: #F8F9FA;
-  border: 1px solid #E5E7EB;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 14px;
   display: flex;
@@ -481,7 +496,7 @@ onMounted(() => {
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 4px;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .status-badge.normal {
@@ -489,12 +504,12 @@ onMounted(() => {
 }
 
 .status-badge.danger {
-  background: #CB0525;
+  background: #cb0525;
 }
 
 .status-badge.warning {
-  background: #EAB308;
-  color: #1F2937;
+  background: #eab308;
+  color: #1f2937;
 }
 
 .load-capacity-percent {
@@ -506,7 +521,7 @@ onMounted(() => {
 .load-progress-track {
   width: 100%;
   height: 6px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -521,11 +536,11 @@ onMounted(() => {
 }
 
 .load-progress-fill.danger {
-  background: #CB0525;
+  background: #cb0525;
 }
 
 .load-progress-fill.warning {
-  background: #EAB308;
+  background: #eab308;
 }
 
 .load-card-footer {
@@ -536,7 +551,7 @@ onMounted(() => {
 }
 
 .methane-label {
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .methane-value {
@@ -548,16 +563,16 @@ onMounted(() => {
 }
 
 .methane-value.danger {
-  color: #CB0525;
+  color: #cb0525;
 }
 
 .methane-value.warning {
-  color: #EAB308;
+  color: #eab308;
 }
 
 /* Section 3: Truck Control */
 .filter-tabs-wrapper {
-  background: #F3F4F6;
+  background: #f3f4f6;
   padding: 4px;
   border-radius: 10px;
   display: flex;
@@ -572,13 +587,13 @@ onMounted(() => {
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
-  color: #6B7280;
+  color: #6b7280;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .tab-pill.active {
-  background: #FFFFFF;
+  background: #ffffff;
   color: #111827;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -587,8 +602,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #F8F9FA;
-  border: 1px solid #E5E7EB;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 8px 12px;
 }
@@ -600,7 +615,7 @@ onMounted(() => {
   font-size: 13px;
   font-family: inherit;
   width: 100%;
-  color: #1F2937;
+  color: #1f2937;
 }
 
 /* Truck List */
@@ -611,8 +626,8 @@ onMounted(() => {
 }
 
 .truck-card {
-  background: #F8F9FA;
-  border: 1px solid #E5E7EB;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 14px;
   display: flex;
@@ -640,19 +655,19 @@ onMounted(() => {
 }
 
 .truck-status-badge.rerouted {
-  background: #FEF3C7;
-  color: #D97706;
+  background: #fef3c7;
+  color: #d97706;
 }
 
 .truck-status-badge.normal {
-  background: #DCFCE7;
-  color: #15803D;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 /* Route Box */
 .route-box {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 10px 14px;
   display: flex;
@@ -662,7 +677,7 @@ onMounted(() => {
 }
 
 .route-origin {
-  color: #CB0525;
+  color: #cb0525;
   font-weight: 700;
 }
 
@@ -685,7 +700,7 @@ onMounted(() => {
 
 .action-label {
   font-size: 11.5px;
-  color: #6B7280;
+  color: #6b7280;
   font-weight: 600;
 }
 
@@ -695,8 +710,8 @@ onMounted(() => {
 }
 
 .shift-btn {
-  background: #FFFFFF;
-  border: 1px solid #D1D5DB;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   padding: 5px 12px;
   font-size: 11.5px;
@@ -707,8 +722,8 @@ onMounted(() => {
 }
 
 .shift-btn:hover {
-  background: #F3F4F6;
-  border-color: #9CA3AF;
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 /* Pagination Bar */
@@ -720,13 +735,14 @@ onMounted(() => {
   margin-top: 8px;
 }
 
-.page-nav-btn, .page-num-btn {
+.page-nav-btn,
+.page-num-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid #E5E7EB;
-  background: #EFEFEF;
-  color: #4B5563;
+  border: 1px solid #e5e7eb;
+  background: #efefef;
+  color: #4b5563;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -737,12 +753,12 @@ onMounted(() => {
 
 .page-num-btn.active {
   background: #057602;
-  color: #FFFFFF;
+  color: #ffffff;
   border-color: #057602;
 }
 
 .page-dots {
-  color: #9CA3AF;
+  color: #9ca3af;
   font-size: 12px;
 }
 

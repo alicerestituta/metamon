@@ -46,15 +46,17 @@ export class SopService {
       completedAt: isCompleted ? new Date() : null,
     });
     const updated = await this.taskRepo.findOne({ where: { id } });
-    return { success: true, data: { id, isCompleted: updated.isCompleted, completedAt: updated.completedAt } };
+    return {
+      success: true,
+      data: { id, isCompleted: updated.isCompleted, completedAt: updated.completedAt },
+    };
   }
 
   async getIncidents(query: IncidentQueryDto) {
-    const qb = this.incidentRepo
-      .createQueryBuilder('i')
-      .leftJoinAndSelect('i.sector', 's');
+    const qb = this.incidentRepo.createQueryBuilder('i').leftJoinAndSelect('i.sector', 's');
 
-    if (query.status && query.status !== 'all') qb.andWhere('i.status = :status', { status: query.status });
+    if (query.status && query.status !== 'all')
+      qb.andWhere('i.status = :status', { status: query.status });
     else if (!query.status) qb.andWhere('i.status = :status', { status: 'resolved' });
 
     if (query.sectorCode) qb.andWhere('s.sector_code = :code', { code: query.sectorCode });
@@ -75,7 +77,9 @@ export class SopService {
           title: i.title,
           description: i.description,
           mitigationNotes: i.mitigationNotes,
-          sector: i.sector ? { id: i.sector.id, sectorCode: i.sector.sectorCode, name: i.sector.name } : null,
+          sector: i.sector
+            ? { id: i.sector.id, sectorCode: i.sector.sectorCode, name: i.sector.name }
+            : null,
           status: i.status,
           resolvedAt: i.resolvedAt,
           createdAt: i.createdAt,
@@ -122,7 +126,8 @@ export class SopService {
     await this.incidentRepo.save(incident);
     return {
       success: true,
-      message: 'Peringatan Dini (Alert Broadcast) telah dikirimkan ke Tim Operasional TPA & Damkar.',
+      message:
+        'Peringatan Dini (Alert Broadcast) telah dikirimkan ke Tim Operasional TPA & Damkar.',
     };
   }
 }

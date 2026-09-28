@@ -4,11 +4,19 @@
       <!-- Logo / Brand -->
       <div class="brand-area">
         <div class="brand-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-            <line x1="9" y1="9" x2="9.01" y2="9"/>
-            <line x1="15" y1="9" x2="15.01" y2="9"/>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#FFFFFF"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
           </svg>
         </div>
         <div>
@@ -45,20 +53,51 @@
               required
             />
             <button type="button" class="pw-toggle" @click="showPw = !showPw">
-              <svg v-if="!showPw" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2" stroke-linecap="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              <svg
+                v-if="!showPw"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6C6C6C"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
               </svg>
-              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6C6C6C" stroke-width="2" stroke-linecap="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
+              <svg
+                v-else
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#6C6C6C"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                />
+                <line x1="1" y1="1" x2="23" y2="23" />
               </svg>
             </button>
           </div>
         </div>
 
         <div v-if="errorMsg" class="error-banner">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           {{ errorMsg }}
         </div>
@@ -77,28 +116,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-const emit = defineEmits(['login-success'])
+const emit = defineEmits(['login-success']);
 
-const { login } = useApi()
+const { login } = useApi();
 
-const nip      = ref('')
-const password = ref('')
-const showPw   = ref(false)
-const loading  = ref(false)
-const errorMsg = ref('')
+const nip = ref('');
+const password = ref('');
+const showPw = ref(false);
+const loading = ref(false);
+const errorMsg = ref('');
 
 async function doLogin() {
-  errorMsg.value = ''
-  loading.value  = true
+  errorMsg.value = '';
+  loading.value = true;
   try {
-    await login(nip.value, password.value)
-    emit('login-success')
+    await login(nip.value, password.value);
+    emit('login-success');
   } catch (e) {
-    errorMsg.value = e?.message ?? 'Login gagal. Periksa NIP dan kata sandi.'
+    errorMsg.value = e?.message ?? 'Login gagal. Periksa NIP dan kata sandi.';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -114,7 +153,7 @@ async function doLogin() {
 }
 
 .login-card {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 20px;
   padding: 32px 28px;
   width: 100%;
@@ -133,7 +172,7 @@ async function doLogin() {
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #CB0525, #8B0018);
+  background: linear-gradient(135deg, #cb0525, #8b0018);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,21 +183,21 @@ async function doLogin() {
 .brand-name {
   font-size: 22px;
   font-weight: 900;
-  color: #1F1F1F;
+  color: #1f1f1f;
   letter-spacing: -0.5px;
   line-height: 1;
 }
 
 .brand-sub {
   font-size: 11px;
-  color: #6C6C6C;
+  color: #6c6c6c;
   margin-top: 3px;
 }
 
 .form-title {
   font-size: 18px;
   font-weight: 800;
-  color: #1F1F1F;
+  color: #1f1f1f;
   margin-bottom: 20px;
 }
 
@@ -177,18 +216,18 @@ async function doLogin() {
 .field-label {
   font-size: 12px;
   font-weight: 700;
-  color: #1F1F1F;
+  color: #1f1f1f;
 }
 
 .field-input {
   width: 100%;
   height: 44px;
-  border: 1.5px solid #E4E4E7;
+  border: 1.5px solid #e4e4e7;
   border-radius: 10px;
   padding: 0 14px;
   font-size: 14px;
-  color: #1F1F1F;
-  background: #FAFAFA;
+  color: #1f1f1f;
+  background: #fafafa;
   outline: none;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
@@ -196,8 +235,8 @@ async function doLogin() {
 }
 
 .field-input:focus {
-  border-color: #CB0525;
-  background: #FFFFFF;
+  border-color: #cb0525;
+  background: #ffffff;
 }
 
 .pw-wrapper {
@@ -222,9 +261,9 @@ async function doLogin() {
 }
 
 .error-banner {
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  color: #B91C1C;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 12px;
@@ -236,8 +275,8 @@ async function doLogin() {
 
 .login-btn {
   height: 48px;
-  background: #CB0525;
-  color: #FFFFFF;
+  background: #cb0525;
+  color: #ffffff;
   border: none;
   border-radius: 12px;
   font-size: 15px;
@@ -253,7 +292,7 @@ async function doLogin() {
 }
 
 .login-btn:hover:not(:disabled) {
-  background: #A8041E;
+  background: #a8041e;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(203, 5, 37, 0.45);
 }
@@ -266,17 +305,21 @@ async function doLogin() {
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2.5px solid rgba(255,255,255,0.4);
-  border-top-color: #FFFFFF;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .hint-text {
   font-size: 11px;
-  color: #6C6C6C;
+  color: #6c6c6c;
   text-align: center;
   line-height: 1.5;
 }
