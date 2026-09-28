@@ -168,7 +168,7 @@
             </button>
           </div>
 
-          <form @submit.prevent="saveProfile" class="modal-body">
+          <form class="modal-body" @submit.prevent="saveProfile">
             <div class="form-group">
               <label class="form-label">Nama Lengkap</label>
               <input v-model="editForm.name" type="text" class="form-input" required />
@@ -212,7 +212,7 @@
             </button>
           </div>
 
-          <form @submit.prevent="saveSecurity" class="modal-body">
+          <form class="modal-body" @submit.prevent="saveSecurity">
             <div class="form-group">
               <label class="form-label">Kata Sandi Saat Ini</label>
               <input type="password" placeholder="••••••••" class="form-input" required />

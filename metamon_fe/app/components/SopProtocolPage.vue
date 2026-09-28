@@ -45,8 +45,8 @@
           >
             <div class="checkbox-wrapper">
               <input
-                type="checkbox"
                 :id="'task-' + task.id"
+                type="checkbox"
                 :checked="task.completed"
                 @change.stop="toggleTask(task)"
               />

@@ -18,7 +18,7 @@
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="doLogin" class="login-form">
+      <form class="login-form" @submit.prevent="doLogin">
         <h2 class="form-title">Masuk ke Dashboard</h2>
 
         <div class="field-group">

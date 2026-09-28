@@ -47,7 +47,8 @@
           <path :d="linePath" fill="none" :stroke="lineColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 
           <!-- X-axis labels (first, mid, last) -->
-          <text v-for="(tick, i) in xTicks" :key="i"
+          <text
+v-for="(tick, i) in xTicks" :key="i"
             :x="tick.x" y="155" :fill="i === xTicks.length - 1 && currentPpm >= 1000 ? '#CB0525' : '#6C6C6C'"
             font-size="9.5" font-weight="600" text-anchor="middle"
           >{{ tick.label }}</text>
@@ -93,7 +94,6 @@ const { getCh4Series, getSimulatedReading } = useApi()
 const series     = ref([])   // [{ time, ch4Ppm }]
 const currentPpm = ref(0)
 const liveStatus = ref('connecting') // 'live' | 'connecting' | 'error'
-let seriesTimer  = null
 let liveTimer    = null
 
 // Chart dimensions

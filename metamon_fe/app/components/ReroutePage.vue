@@ -266,12 +266,12 @@ async function handleExecuteReroute() {
   }
   
   try {
-    const res = await rerouteBulk({ 
+    await rerouteBulk({ 
       fromSectorCode: source.sectorCode, 
       toSectorCode: selectedTargetSector.value 
     })
     await fetchData()
-  } catch(e) {
+  } catch {
     // error already shown via useApi toast
   }
 }
@@ -282,15 +282,14 @@ async function changeTruckTarget(truck, newTargetName) {
     const res = await rerouteTruck(truck.id, { toSectorCode: sectorCode })
     toast.success(res.message || `Rute armada ${truck.plate} berhasil dipindahkan.`)
     await fetchData()
-  } catch(e) {
+  } catch {
     // error already shown via useApi toast
   }
 }
 
-let pollTimer = null
 onMounted(() => {
   fetchData()
-  pollTimer = setInterval(fetchData, 10000)
+  setInterval(fetchData, 10000)
 })
 </script>
 

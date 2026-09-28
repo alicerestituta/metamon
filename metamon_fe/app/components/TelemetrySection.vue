@@ -66,10 +66,10 @@
             <span class="val-number">{{ data?.reroutedTrucks ?? '—' }}</span>
             <span class="val-unit">Truk</span>
           </div>
-          <div class="status-badge blue-badge" v-if="(data?.reroutedTrucks ?? 0) > 0">
+          <div v-if="(data?.reroutedTrucks ?? 0) > 0" class="status-badge blue-badge">
             Diarahkan ke Sektor {{ data?.alertSector ?? '—' }}
           </div>
-          <div class="status-msg success-msg" v-else>Semua normal</div>
+          <div v-else class="status-msg success-msg">Semua normal</div>
         </div>
       </div>
     </div>

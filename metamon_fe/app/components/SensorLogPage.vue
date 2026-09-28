@@ -109,7 +109,8 @@
             </div>
 
             <div class="battery-group">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              <svg
+width="12" height="12" viewBox="0 0 24 24" fill="none"
                 :stroke="node.batteryPercent >= 30 ? '#057602' : '#CB0525'"
                 stroke-width="2">
                 <rect x="1" y="6" width="18" height="12" rx="2"></rect>
@@ -142,7 +143,7 @@
       </div>
 
       <!-- Pagination -->
-      <div class="pagination-bar" v-if="pagination.totalPages > 1">
+      <div v-if="pagination.totalPages > 1" class="pagination-bar">
         <button class="page-arrow" :disabled="pagination.page <= 1" @click="fetchSensors(pagination.page - 1)">‹</button>
         <button
           v-for="p in pagination.totalPages"

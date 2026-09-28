@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import AppHeader from './components/AppHeader.vue';
 import SidebarMenu from './components/SidebarMenu.vue';
 import QuickInfo from './components/QuickInfo.vue';
@@ -141,7 +141,7 @@ import SensorLogModal from './components/SensorLogModal.vue';
 import SafetyProtocolModal from './components/SafetyProtocolModal.vue';
 import LoginScreen from './components/LoginScreen.vue';
 
-const { isLoggedIn, logout, seedTodayHistory } = useApi();
+const { isLoggedIn, logout } = useApi();
 
 const currentView = ref('dashboard');
 const showSidebar = ref(false);

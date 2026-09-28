@@ -8,7 +8,7 @@
           <p class="section-subtitle">Monitoring sebaran gas</p>
         </div>
 
-        <button @click="toggleFullscreen" class="fullscreen-btn" title="Layar Penuh">
+        <button class="fullscreen-btn" title="Layar Penuh" @click="toggleFullscreen">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 3 21 3 21 9"></polyline>
             <polyline points="9 21 3 21 3 15"></polyline>
