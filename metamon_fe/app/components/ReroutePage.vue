@@ -179,6 +179,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 
 const { getSectors, getTrucks, rerouteBulk, rerouteTruck } = useApi()
+const toast = useToast()
 
 const selectedTargetSector = ref('') // ex: 'A'
 
@@ -260,7 +261,7 @@ async function handleExecuteReroute() {
   
   const source = rawSectors.value.find(s => s.status === 'locked' || s.status === 'danger')
   if (!source) {
-    alert("Tidak ada sektor yang sedang kelebihan kapasitas (locked/danger) untuk dialihkan.")
+    toast.warning('Tidak ada sektor yang sedang kelebihan kapasitas untuk dialihkan.')
     return
   }
   
@@ -269,10 +270,9 @@ async function handleExecuteReroute() {
       fromSectorCode: source.sectorCode, 
       toSectorCode: selectedTargetSector.value 
     })
-    alert(res.data?.message || "Pengalihan berhasil dieksekusi.")
     await fetchData()
   } catch(e) {
-    alert(e.message || "Gagal mengeksekusi pengalihan.")
+    // error already shown via useApi toast
   }
 }
 
@@ -280,10 +280,10 @@ async function changeTruckTarget(truck, newTargetName) {
   try {
     const sectorCode = newTargetName.replace('Sektor ', '')
     const res = await rerouteTruck(truck.id, { toSectorCode: sectorCode })
-    alert(res.message || `Rute armada ${truck.plate} berhasil dipindahkan.`)
+    toast.success(res.message || `Rute armada ${truck.plate} berhasil dipindahkan.`)
     await fetchData()
   } catch(e) {
-    alert(e.message || "Gagal memindahkan armada.")
+    // error already shown via useApi toast
   }
 }
 

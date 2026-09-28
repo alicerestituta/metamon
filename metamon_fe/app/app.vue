@@ -1,6 +1,8 @@
 <template>
   <div class="app-viewport">
     <NuxtRouteAnnouncer />
+    <!-- Global Toast Notifications -->
+    <AppToast />
 
     <!-- Login Screen -->
     <LoginScreen

@@ -5,6 +5,7 @@
  * - Provides login / logout helpers and a reactive `user` state.
  */
 import { ref, computed } from 'vue'
+import { useToast } from './useToast'
 
 const TOKEN_KEY = 'metamon_token'
 const USER_KEY  = 'metamon_user'
@@ -25,6 +26,7 @@ if (typeof window !== 'undefined') {
 export function useApi() {
   const config  = useRuntimeConfig()
   const baseURL = config.public.apiBaseUrl as string
+  const toast   = useToast()
 
   const isLoggedIn = computed(() => !!token.value)
 
@@ -55,7 +57,9 @@ export function useApi() {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      throw new Error(err?.message ?? `HTTP ${res.status}`)
+      const msg = err?.message ?? `Terjadi kesalahan (HTTP ${res.status})`
+      toast.error(msg)
+      throw new Error(msg)
     }
 
     return res.json() as Promise<T>
@@ -73,6 +77,7 @@ export function useApi() {
       localStorage.setItem(TOKEN_KEY, token.value!)
       localStorage.setItem(USER_KEY,  JSON.stringify(user.value))
     }
+    toast.success(`Selamat datang, ${user.value?.name ?? 'Petugas'}!`)
     return data
   }
 
@@ -130,7 +135,9 @@ export function useApi() {
   }
 
   async function rerouteBulk(dto: Record<string, any>) {
-    return apiFetch<any>('/trucks/reroute-bulk', { method: 'PATCH', body: JSON.stringify(dto) })
+    const res = await apiFetch<any>('/trucks/reroute-bulk', { method: 'PATCH', body: JSON.stringify(dto) })
+    toast.success(res.data?.message ?? 'Pengalihan berhasil dieksekusi.')
+    return res
   }
 
   // ── Seed historical data (called once after login) ────────────────────────
