@@ -13,21 +13,22 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Cari ID Sensor (misal: C-07)..." 
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Cari ID Sensor (misal: C-07)..."
             class="search-input"
+            @input="debounceFetch"
           />
         </div>
 
         <div class="dropdown-filter-wrapper">
-          <select v-model="selectedSector" class="select-filter">
-            <option value="all">Sektor</option>
-            <option value="Sektor A">Sektor A</option>
-            <option value="Sektor B">Sektor B</option>
-            <option value="Sektor C">Sektor C</option>
-            <option value="Sektor D">Sektor D</option>
+          <select v-model="selectedSector" class="select-filter" @change="fetchSensors(1)">
+            <option value="">Sektor</option>
+            <option value="A">Sektor A</option>
+            <option value="B">Sektor B</option>
+            <option value="C">Sektor C</option>
+            <option value="D">Sektor D</option>
           </select>
         </div>
       </div>
@@ -40,13 +41,13 @@
         <div class="summary-left">
           <span class="summary-label">Node Terhubung</span>
           <div class="summary-value">
-            <span class="num-bold">48</span>
-            <span class="num-sub">/ 52</span>
+            <span class="num-bold">{{ summary?.activeNodes ?? '—' }}</span>
+            <span class="num-sub">/ {{ summary?.totalNodes ?? '—' }}</span>
           </div>
         </div>
         <div class="summary-right">
-          <span class="active-badge-green">92.3% Aktif</span>
-          <span class="summary-subtext">4 dalam perawatan</span>
+          <span class="active-badge-green">{{ activePercent }}% Aktif</span>
+          <span class="summary-subtext">{{ (summary?.totalNodes ?? 0) - (summary?.activeNodes ?? 0) }} dalam perawatan</span>
         </div>
       </div>
 
@@ -55,13 +56,13 @@
         <div class="summary-left">
           <span class="summary-label">Titik Tertinggi (CH<sub>4</sub>)</span>
           <div class="summary-value">
-            <span class="num-bold red-text">1.428</span>
+            <span class="num-bold red-text">{{ summary?.peakCh4Ppm?.toLocaleString('id-ID') ?? '—' }}</span>
             <span class="unit-text">ppm</span>
           </div>
         </div>
         <div class="summary-right text-right">
-          <span class="peak-node-id">B-07</span>
-          <span class="summary-subtext">Sektor B TPA</span>
+          <span class="peak-node-id">{{ summary?.peakNodeCode ?? '—' }}</span>
+          <span class="summary-subtext">{{ summary?.peakSectorName ?? '—' }}</span>
         </div>
       </div>
     </div>
@@ -70,36 +71,51 @@
     <div class="page-card list-container-card">
       <div class="list-header">
         <h2 class="list-title">Pemantauan Real Time</h2>
-        
+
         <div class="status-filter-wrapper">
-          <select v-model="selectedStatus" class="select-status-filter">
-            <option value="all">Semua Status</option>
-            <option value="Bahaya">Bahaya</option>
-            <option value="Waspada">Waspada</option>
-            <option value="Normal">Normal</option>
+          <select v-model="selectedStatus" class="select-status-filter" @change="fetchSensors(1)">
+            <option value="">Semua Status</option>
+            <option value="danger">Bahaya</option>
+            <option value="warning">Waspada</option>
+            <option value="normal">Normal</option>
           </select>
         </div>
       </div>
 
+      <!-- Loading -->
+      <div v-if="loading" class="nodes-list">
+        <div v-for="i in 4" :key="i" class="node-item-card skeleton-node">
+          <div class="skel skel-title"></div>
+          <div class="skel skel-data"></div>
+        </div>
+      </div>
+
       <!-- Node Cards Stream -->
-      <div class="nodes-list">
-        <div 
-          v-for="node in filteredNodes" 
+      <div v-else class="nodes-list">
+        <div v-if="!nodes.length" class="empty-state">
+          Tidak ada node yang sesuai filter.
+        </div>
+
+        <div
+          v-for="node in nodes"
           :key="node.id"
           class="node-item-card"
+          :class="node.status"
         >
           <div class="node-top-bar">
             <div class="node-title-group">
-              <span class="node-name">Node {{ node.id }}</span>
-              <span class="status-chip" :class="node.statusType">{{ node.status }}</span>
+              <span class="node-name">Node {{ node.nodeCode }}</span>
+              <span class="status-chip" :class="node.status">{{ statusLabel(node.status) }}</span>
             </div>
 
             <div class="battery-group">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#057602" stroke-width="2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                :stroke="node.batteryPercent >= 30 ? '#057602' : '#CB0525'"
+                stroke-width="2">
                 <rect x="1" y="6" width="18" height="12" rx="2"></rect>
                 <line x1="23" y1="10" x2="23" y2="14"></line>
               </svg>
-              <span class="battery-level">{{ node.battery }}</span>
+              <span class="battery-level">{{ node.batteryPercent }}%</span>
             </div>
           </div>
 
@@ -107,52 +123,104 @@
           <div class="node-data-box">
             <div class="data-col text-center">
               <span class="col-label">Sektor</span>
-              <span class="col-val">{{ node.sector }}</span>
+              <span class="col-val">{{ node.sector?.name ?? '—' }}</span>
             </div>
             <div class="data-divider"></div>
             <div class="data-col text-center">
               <span class="col-label">Konsentrasi CH<sub>4</sub></span>
-              <span class="col-val bold">{{ node.ch4 }}</span>
+              <span class="col-val bold" :class="node.status === 'danger' ? 'danger-val' : ''">
+                {{ node.latestReading ? `${node.latestReading.ch4Ppm.toLocaleString('id-ID')} ppm` : '—' }}
+              </span>
+            </div>
+            <div class="data-divider"></div>
+            <div class="data-col text-center">
+              <span class="col-label">Terakhir Aktif</span>
+              <span class="col-val">{{ formatRelative(node.lastSeenAt) }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div class="pagination-bar">
-        <button class="page-arrow" disabled>‹</button>
-        <button class="page-num active">1</button>
-        <button class="page-num">2</button>
-        <span class="page-dots">...</span>
-        <button class="page-num">10</button>
-        <button class="page-arrow">›</button>
+      <div class="pagination-bar" v-if="pagination.totalPages > 1">
+        <button class="page-arrow" :disabled="pagination.page <= 1" @click="fetchSensors(pagination.page - 1)">‹</button>
+        <button
+          v-for="p in pagination.totalPages"
+          :key="p"
+          class="page-num"
+          :class="{ active: p === pagination.page }"
+          @click="fetchSensors(p)"
+        >{{ p }}</button>
+        <button class="page-arrow" :disabled="pagination.page >= pagination.totalPages" @click="fetchSensors(pagination.page + 1)">›</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-const searchQuery = ref('')
-const selectedSector = ref('all')
-const selectedStatus = ref('all')
+const { getSensors } = useApi()
 
-const allNodes = ref([
-  { id: 'C-07', sector: 'Sektor C', ch4: '1.428 ppm', battery: '88%', status: 'Bahaya', statusType: 'red' },
-  { id: 'B-12', sector: 'Sektor B', ch4: '740 ppm', battery: '94%', status: 'Waspada', statusType: 'yellow' },
-  { id: 'A-04', sector: 'Sektor A', ch4: '190 ppm', battery: '98%', status: 'Normal', statusType: 'green' },
-  { id: 'A-09', sector: 'Sektor A', ch4: '220 ppm', battery: '76%', status: 'Normal', statusType: 'green' },
-  { id: 'D-02', sector: 'Sektor D', ch4: '115 ppm', battery: '100%', status: 'Normal', statusType: 'green' }
-])
+const searchQuery  = ref('')
+const selectedSector = ref('')
+const selectedStatus = ref('')
 
-const filteredNodes = computed(() => {
-  return allNodes.value.filter(n => {
-    const matchesSearch = n.id.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesSector = selectedSector.value === 'all' || n.sector === selectedSector.value
-    const matchesStatus = selectedStatus.value === 'all' || n.status === selectedStatus.value
-    return matchesSearch && matchesSector && matchesStatus
-  })
+const loading   = ref(true)
+const nodes     = ref([])
+const summary   = ref(null)
+const pagination = ref({ page: 1, limit: 10, total: 0, totalPages: 1 })
+let   pollTimer  = null
+let   debounce   = null
+
+const activePercent = computed(() => {
+  if (!summary.value) return '—'
+  const { activeNodes, totalNodes } = summary.value
+  return totalNodes > 0 ? ((activeNodes / totalNodes) * 100).toFixed(1) : '0'
+})
+
+function statusLabel(s) {
+  return { danger: 'Bahaya', warning: 'Waspada', normal: 'Normal' }[s] ?? s
+}
+
+function formatRelative(iso) {
+  if (!iso) return '—'
+  const diff = Math.round((Date.now() - new Date(iso).getTime()) / 1000)
+  if (diff < 60) return `${diff} dtk lalu`
+  if (diff < 3600) return `${Math.round(diff / 60)} mnt lalu`
+  return `${Math.round(diff / 3600)} jam lalu`
+}
+
+async function fetchSensors(page = 1) {
+  loading.value = true
+  try {
+    const res = await getSensors({
+      search: searchQuery.value || undefined,
+      sector: selectedSector.value || undefined,
+      status: selectedStatus.value || undefined,
+      page,
+      limit: 10,
+    })
+    nodes.value     = res.data.nodes
+    summary.value   = res.data.summary
+    pagination.value = { ...res.data.pagination, page }
+  } catch {}
+  finally { loading.value = false }
+}
+
+function debounceFetch() {
+  clearTimeout(debounce)
+  debounce = setTimeout(() => fetchSensors(1), 400)
+}
+
+onMounted(() => {
+  fetchSensors()
+  pollTimer = setInterval(() => fetchSensors(pagination.value.page), 10000)
+})
+
+onUnmounted(() => {
+  clearInterval(pollTimer)
+  clearTimeout(debounce)
 })
 </script>
 
@@ -214,6 +282,7 @@ const filteredNodes = computed(() => {
   font-size: 12px;
   color: #1F1F1F;
   outline: none;
+  font-family: inherit;
 }
 
 .search-input:focus {
@@ -236,6 +305,7 @@ const filteredNodes = computed(() => {
   color: #1F1F1F;
   outline: none;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .select-status-filter {
@@ -269,9 +339,7 @@ const filteredNodes = computed(() => {
   color: #6C6C6C;
 }
 
-.summary-label sub {
-  font-size: 8px;
-}
+.summary-label sub { font-size: 8px; }
 
 .summary-value {
   display: flex;
@@ -286,9 +354,7 @@ const filteredNodes = computed(() => {
   color: #1F1F1F;
 }
 
-.num-bold.red-text {
-  color: #CB0525;
-}
+.num-bold.red-text { color: #CB0525; }
 
 .num-sub, .unit-text {
   font-size: 13px;
@@ -325,9 +391,7 @@ const filteredNodes = computed(() => {
 }
 
 /* Main List Container */
-.list-container-card {
-  padding: 18px 14px;
-}
+.list-container-card { padding: 18px 14px; }
 
 .list-header {
   display: flex;
@@ -348,13 +412,24 @@ const filteredNodes = computed(() => {
   gap: 12px;
 }
 
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: #9CA3AF;
+  font-size: 13px;
+}
+
 .node-item-card {
   background: #FFFFFF;
   border: 1px solid #EAEAEA;
   border-radius: 12px;
   padding: 14px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s ease;
 }
+
+.node-item-card.danger  { border-left: 3px solid #CB0525; }
+.node-item-card.warning { border-left: 3px solid #F59E0B; }
 
 .node-top-bar {
   display: flex;
@@ -383,9 +458,9 @@ const filteredNodes = computed(() => {
   color: #FFFFFF;
 }
 
-.status-chip.red { background: #CB0525; }
-.status-chip.yellow { background: #F59E0B; }
-.status-chip.green { background: #057602; }
+.status-chip.danger  { background: #CB0525; }
+.status-chip.warning { background: #F59E0B; color: #1F1F1F; }
+.status-chip.normal  { background: #057602; }
 
 .battery-group {
   display: flex;
@@ -426,9 +501,8 @@ const filteredNodes = computed(() => {
   color: #1F1F1F;
 }
 
-.col-val.bold {
-  font-weight: 800;
-}
+.col-val.bold { font-weight: 800; }
+.col-val.danger-val { color: #CB0525; }
 
 .data-divider {
   width: 1px;
@@ -444,6 +518,7 @@ const filteredNodes = computed(() => {
   gap: 8px;
   margin-top: 18px;
   padding-top: 14px;
+  flex-wrap: wrap;
 }
 
 .page-arrow, .page-num {
@@ -461,18 +536,23 @@ const filteredNodes = computed(() => {
   cursor: pointer;
 }
 
-.page-arrow:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.page-arrow:disabled { opacity: 0.5; cursor: not-allowed; }
+.page-num.active { background: #057602; color: #FFFFFF; }
+
+/* Skeleton */
+.skeleton-node { display: flex; flex-direction: column; gap: 12px; }
+
+.skel {
+  background: #F3F4F6;
+  border-radius: 6px;
+  animation: shimmer 1.5s infinite;
 }
 
-.page-num.active {
-  background: #057602;
-  color: #FFFFFF;
-}
+.skel-title { height: 14px; width: 40%; }
+.skel-data  { height: 50px; width: 100%; border-radius: 8px; }
 
-.page-dots {
-  color: #6C6C6C;
-  font-size: 12px;
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
 }
 </style>

@@ -90,7 +90,7 @@
           :class="{ active: activeTab === 'all' }"
           @click="activeTab = 'all'"
         >
-          Semua ({{ trucks.length }})
+          Semua ({{ totalCount }})
         </button>
         <button 
           class="tab-pill" 
@@ -176,100 +176,78 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
-const selectedTargetSector = ref('Sektor A')
+const { getSectors, getTrucks, rerouteBulk, rerouteTruck } = useApi()
 
-const sectorChoices = ref([
-  { id: 'Sektor A', name: 'Sektor A', capacity: '90%', disabled: false },
-  { id: 'Sektor B', name: 'Sektor B', capacity: '0%', disabled: true },
-  { id: 'Sektor C', name: 'Sektor C', capacity: '71%', disabled: false },
-  { id: 'Sektor D', name: 'Sektor D', capacity: '59%', disabled: false }
-])
+const selectedTargetSector = ref('') // ex: 'A'
 
-const sectorLoads = ref([
-  {
-    id: 'sec-a',
-    name: 'Sektor A',
-    statusLabel: 'Beban Normal',
-    statusType: 'normal',
-    capacityPercent: 90,
-    progressWidth: 20,
-    ch4Value: '190'
-  },
-  {
-    id: 'sec-b',
-    name: 'Sektor B',
-    statusLabel: 'Beban Penuh',
-    statusType: 'danger',
-    capacityPercent: 0,
-    progressWidth: 100,
-    ch4Value: '1.490'
-  },
-  {
-    id: 'sec-c',
-    name: 'Sektor C',
-    statusLabel: 'Beban Sedang',
-    statusType: 'warning',
-    capacityPercent: 71,
-    progressWidth: 71,
-    ch4Value: '910'
-  },
-  {
-    id: 'sec-d',
-    name: 'Sektor D',
-    statusLabel: 'Beban Sedang',
-    statusType: 'warning',
-    capacityPercent: 59,
-    progressWidth: 59,
-    ch4Value: '800'
-  }
-])
+const rawSectors = ref([])
+const rawTrucks = ref([])
+const totalCount = ref(0)
+const reroutedCount = ref(0)
+const normalCount = ref(0)
 
 const activeTab = ref('all')
 const searchQuery = ref('')
 
-const trucks = ref([
-  {
-    id: 1,
-    plate: 'B 9812 UOX',
-    isRerouted: true,
-    originalTarget: 'Sektor B',
-    reroutedTarget: 'Sektor C'
-  },
-  {
-    id: 2,
-    plate: 'B 5729 UOX',
-    isRerouted: true,
-    originalTarget: 'Sektor B',
-    reroutedTarget: 'Sektor C'
-  },
-  {
-    id: 3,
-    plate: 'B 3411 UOX',
-    isRerouted: false,
-    originalTarget: 'Sektor A',
-    reroutedTarget: ''
-  },
-  {
-    id: 4,
-    plate: 'B 9102 KAA',
-    isRerouted: false,
-    originalTarget: 'Sektor D',
-    reroutedTarget: ''
-  }
-])
+async function fetchData() {
+  try {
+    const s = await getSectors()
+    rawSectors.value = s.data
 
-const reroutedCount = computed(() => trucks.value.filter(t => t.isRerouted).length)
-const normalCount = computed(() => trucks.value.filter(t => !t.isRerouted).length)
+    if (!selectedTargetSector.value) {
+      const avail = rawSectors.value.find(sec => sec.status !== 'locked' && sec.status !== 'danger')
+      if (avail) selectedTargetSector.value = avail.sectorCode
+    }
+
+    const q = { limit: 50 }
+    if (activeTab.value !== 'all') q.status = activeTab.value
+    if (searchQuery.value) q.search = searchQuery.value
+
+    const t = await getTrucks(q)
+    rawTrucks.value = t.data.trucks
+    totalCount.value = t.data.summary.total
+    reroutedCount.value = t.data.summary.reroutedCount
+    normalCount.value = t.data.summary.normalCount
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+watch([activeTab, searchQuery], () => {
+  fetchData()
+})
+
+const sectorChoices = computed(() => {
+  return rawSectors.value.map(s => ({
+    id: s.sectorCode,
+    name: s.name,
+    capacity: `${s.capacityPercent}%`,
+    disabled: s.status === 'locked' || s.status === 'danger'
+  }))
+})
+
+const sectorLoads = computed(() => {
+  return rawSectors.value.map(s => ({
+    id: s.id,
+    name: s.name,
+    statusLabel: s.statusLabel,
+    statusType: s.status,
+    capacityPercent: s.capacityPercent,
+    progressWidth: s.capacityPercent,
+    ch4Value: s.currentCh4Ppm ? s.currentCh4Ppm.toLocaleString('id-ID') : '0'
+  }))
+})
 
 const filteredTrucks = computed(() => {
-  return trucks.value.filter(t => {
-    const matchesSearch = t.plate.toLowerCase().includes(searchQuery.value.toLowerCase())
-    if (activeTab.value === 'rerouted') return matchesSearch && t.isRerouted
-    if (activeTab.value === 'normal') return matchesSearch && !t.isRerouted
-    return matchesSearch
-  })
+  return rawTrucks.value.map(t => ({
+    id: t.id,
+    plate: t.plateNumber,
+    isRerouted: t.isRerouted,
+    originalTarget: t.originalSector?.name || '?',
+    reroutedTarget: t.reroutedSector?.name || ''
+  }))
 })
 
 function selectSector(sec) {
@@ -277,14 +255,43 @@ function selectSector(sec) {
   selectedTargetSector.value = sec.id
 }
 
-function handleExecuteReroute() {
-  alert(`Pengalihan Kuota Truk Berhasil Dieksekusi ke ${selectedTargetSector.value}!`)
+async function handleExecuteReroute() {
+  if (!selectedTargetSector.value) return
+  
+  const source = rawSectors.value.find(s => s.status === 'locked' || s.status === 'danger')
+  if (!source) {
+    alert("Tidak ada sektor yang sedang kelebihan kapasitas (locked/danger) untuk dialihkan.")
+    return
+  }
+  
+  try {
+    const res = await rerouteBulk({ 
+      fromSectorCode: source.sectorCode, 
+      toSectorCode: selectedTargetSector.value 
+    })
+    alert(res.data?.message || "Pengalihan berhasil dieksekusi.")
+    await fetchData()
+  } catch(e) {
+    alert(e.message || "Gagal mengeksekusi pengalihan.")
+  }
 }
 
-function changeTruckTarget(truck, newTarget) {
-  truck.reroutedTarget = newTarget
-  alert(`Rute armada ${truck.plate} berhasil dipindahkan ke ${newTarget}.`)
+async function changeTruckTarget(truck, newTargetName) {
+  try {
+    const sectorCode = newTargetName.replace('Sektor ', '')
+    const res = await rerouteTruck(truck.id, { toSectorCode: sectorCode })
+    alert(res.message || `Rute armada ${truck.plate} berhasil dipindahkan.`)
+    await fetchData()
+  } catch(e) {
+    alert(e.message || "Gagal memindahkan armada.")
+  }
 }
+
+let pollTimer = null
+onMounted(() => {
+  fetchData()
+  pollTimer = setInterval(fetchData, 10000)
+})
 </script>
 
 <style scoped>

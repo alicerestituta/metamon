@@ -14,8 +14,8 @@
         </button>
       </div>
 
-      <!-- Red Alert Sub-Card -->
-      <div class="hero-alert-bar">
+      <!-- Alert Bar — dynamic based on dashboard data -->
+      <div v-if="riskLevel === 'danger' || riskLevel === 'warning'" class="hero-alert-bar" :class="riskLevel">
         <div class="alert-left">
           <div class="alert-icon-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
@@ -25,8 +25,8 @@
             </svg>
           </div>
           <div class="alert-text">
-            <span class="alert-title">BAHAYA SEKTOR B</span>
-            <span class="alert-desc">CH4 melampaui batas ambang</span>
+            <span class="alert-title">{{ alertTitle }}</span>
+            <span class="alert-desc">{{ alertMessage }}</span>
           </div>
         </div>
 
@@ -34,23 +34,62 @@
           Tindak Lanjuti
         </button>
       </div>
+
+      <!-- Normal state -->
+      <div v-else class="hero-normal-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>Semua sektor dalam kondisi normal</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 defineEmits(['open-protocol'])
 
-const isSpinning = ref(false)
+const { getDashboard } = useApi()
 
-function refreshData() {
-  isSpinning.value = true
-  setTimeout(() => {
-    isSpinning.value = false
-  }, 600)
+const isSpinning = ref(false)
+const dashData   = ref(null)
+let pollTimer    = null
+
+const riskLevel = computed(() => dashData.value?.riskLevel ?? 'normal')
+
+const alertTitle = computed(() => {
+  const s = dashData.value?.alertSector
+  if (riskLevel.value === 'danger')  return s ? `BAHAYA SEKTOR ${s}` : 'BAHAYA TERDETEKSI'
+  if (riskLevel.value === 'warning') return s ? `WASPADA SEKTOR ${s}` : 'PERINGATAN'
+  return ''
+})
+
+const alertMessage = computed(() =>
+  dashData.value?.alertMessage ?? 'Pantau kondisi dan segera tindak lanjuti'
+)
+
+async function fetchDashboard() {
+  try {
+    const res = await getDashboard()
+    dashData.value = res.data
+  } catch {}
 }
+
+async function refreshData() {
+  isSpinning.value = true
+  await fetchDashboard()
+  setTimeout(() => { isSpinning.value = false }, 600)
+}
+
+onMounted(() => {
+  fetchDashboard()
+  pollTimer = setInterval(fetchDashboard, 15000)
+})
+
+onUnmounted(() => clearInterval(pollTimer))
 </script>
 
 <style scoped>
@@ -111,19 +150,14 @@ function refreshData() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.refresh-circle-btn:hover {
-  background: #F4F4F5;
-}
+.refresh-circle-btn:hover { background: #F4F4F5; }
 
-.spin {
-  animation: spin 0.6s linear;
-}
+.spin { animation: spin 0.6s linear; }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* Hero Alert Bar */
+/* Alert Bar */
 .hero-alert-bar {
-  background: #D91E36;
   border-radius: var(--radius-md);
   padding: 10px 12px;
   display: flex;
@@ -132,16 +166,29 @@ function refreshData() {
   gap: 8px;
 }
 
+.hero-alert-bar.danger  { background: #D91E36; }
+.hero-alert-bar.warning { background: #B45309; }
+
+.hero-normal-bar {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
 .alert-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.alert-icon-box {
-  display: flex;
-  align-items: center;
-}
+.alert-icon-box { display: flex; align-items: center; }
 
 .alert-text {
   display: flex;
@@ -172,7 +219,5 @@ function refreshData() {
   transition: transform 0.15s ease;
 }
 
-.action-followup-btn:hover {
-  transform: scale(1.03);
-}
+.action-followup-btn:hover { transform: scale(1.03); }
 </style>
