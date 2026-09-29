@@ -67,7 +67,7 @@ export class SensorsService {
       .createQueryBuilder('r')
       .innerJoin('r.node', 'n')
       .where('n.is_active = true')
-      .orderBy('r.ch4_ppm', 'DESC')
+      .orderBy('r.ch4Ppm', 'DESC')
       .leftJoinAndSelect('r.node', 'node')
       .leftJoinAndSelect('node.sector', 'sec')
       .getOne();
@@ -101,7 +101,7 @@ export class SensorsService {
       .createQueryBuilder('r')
       .where('r.node_id = :nodeId', { nodeId })
       .andWhere('r.recorded_at BETWEEN :from AND :to', { from: fromDate, to: toDate })
-      .orderBy('r.recorded_at', 'DESC')
+      .orderBy('r.recordedAt', 'DESC')
       .take(+limit)
       .getMany();
     return { success: true, data: readings };

@@ -60,7 +60,7 @@ export class ReadingsService {
       .createQueryBuilder('r')
       .innerJoin('r.node', 'n')
       .where('n.is_active = true')
-      .orderBy('r.recorded_at', 'DESC')
+      .orderBy('r.recordedAt', 'DESC')
       .select('r.ch4_ppm', 'ch4Ppm')
       .getRawOne();
 
