@@ -15,4 +15,10 @@ export class TelemetryController {
   getDashboard() {
     return this.telemetryService.getDashboard();
   }
+
+  @ApiOperation({ summary: '[Admin] Statistik lengkap untuk admin panel' })
+  @Get('admin-stats')
+  getAdminStats() {
+    return this.telemetryService.getAdminStats();
+  }
 }

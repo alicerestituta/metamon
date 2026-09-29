@@ -1,0 +1,2503 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metamon Admin — Panel Manajemen Sistem TPA</title>
+  <meta name="description" content="Panel administrasi sistem telemetri dan mitigasi gas metana TPA Bantar Gebang." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS — Consistent with metamon_fe
+    ═══════════════════════════════════════════════ */
+    :root {
+      --brand: #057602;
+      --brand-dark: #046201;
+      --brand-light: #e6f4e6;
+      --brand-lighter: #f0faf0;
+
+      --danger: #CB0525;
+      --danger-bg: #FEF2F2;
+      --danger-border: #fca5a5;
+      --danger-dark: #a8041e;
+
+      --warning: #F59E0B;
+      --warning-bg: #FFFBEB;
+      --warning-border: #FDE68A;
+
+      --success: #10B981;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+
+      --info: #0084FF;
+      --info-bg: #EFF6FF;
+      --info-border: #BFDBFE;
+
+      --bg-base: #EAECEF;
+      --bg-app: #F7F8F9;
+      --bg-card: #FFFFFF;
+      --bg-sidebar: #FFFFFF;
+      --bg-header: #FFFFFF;
+
+      --text-primary: #1A1D1F;
+      --text-secondary: #6F767E;
+      --text-muted: #9A9FA5;
+
+      --border: #E6E8EC;
+      --border-light: #D0D5DD;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-card: 0 2px 10px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.10);
+      --shadow-xl: 0 20px 60px rgba(0,0,0,0.15);
+
+      --sidebar-w: 260px;
+      --header-h: 64px;
+      --font: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ═══════════════════════════════════════════════
+       SCROLLBAR
+    ═══════════════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* ═══════════════════════════════════════════════
+       LOGIN SCREEN
+    ═══════════════════════════════════════════════ */
+    #login-screen {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d1117 0%, #0f1e0e 40%, #1a2332 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow-xl);
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .login-brand-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--brand), #034e01);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(5,118,2,0.3);
+      flex-shrink: 0;
+    }
+    .login-brand-icon svg { color: #fff; }
+    .login-brand h1 { font-size: 24px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.5px; }
+    .login-brand p { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+    .login-subtitle {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+    }
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--brand-light);
+      color: var(--brand);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .field-label { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+    .field-input {
+      height: 46px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 14px;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      font-family: inherit;
+      width: 100%;
+    }
+    .field-input:focus { border-color: var(--brand); background: #fff; }
+    .pw-wrapper { position: relative; }
+    .pw-wrapper .field-input { padding-right: 46px; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      display: flex; align-items: center; color: var(--text-muted);
+    }
+    .error-msg {
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      color: var(--danger); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-size: 12.5px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+    }
+    .btn-primary {
+      height: 48px; background: var(--brand); color: #fff; border: none;
+      border-radius: var(--radius-md); font-size: 15px; font-weight: 800;
+      cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center;
+      justify-content: center; gap: 8px; font-family: inherit; width: 100%;
+      box-shadow: 0 4px 16px rgba(5,118,2,0.3);
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(5,118,2,0.4); }
+    .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .btn-danger {
+      height: 48px; background: var(--danger); color: #fff; border: none;
+      border-radius: var(--radius-md); font-size: 15px; font-weight: 800;
+      cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center;
+      justify-content: center; gap: 8px; font-family: inherit; width: 100%;
+      box-shadow: 0 4px 16px rgba(203,5,37,0.3);
+    }
+    .btn-danger:hover:not(:disabled) { background: var(--danger-dark); transform: translateY(-1px); }
+    .btn-danger:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .login-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 16px; }
+    .login-hint strong { color: var(--text-secondary); }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════════════════════════════════════════
+       APP LAYOUT
+    ═══════════════════════════════════════════════ */
+    #app { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.04);
+      transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .sidebar-brand {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .brand-logo {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--brand), #034e01);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(5,118,2,0.25);
+    }
+    .brand-text { font-size: 19px; font-weight: 900; color: var(--brand); letter-spacing: -0.4px; }
+    .brand-label {
+      font-size: 9px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 800; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      padding: 6px 8px 4px;
+      margin-top: 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      height: 44px; padding: 0 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      color: var(--text-secondary);
+      font-size: 13.5px; font-weight: 600;
+      position: relative;
+    }
+    .nav-item:hover { background: var(--bg-app); color: var(--text-primary); }
+    .nav-item.active {
+      background: var(--brand-light);
+      color: var(--brand);
+      font-weight: 800;
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 6px; bottom: 6px;
+      width: 3px;
+      background: var(--brand);
+      border-radius: 0 3px 3px 0;
+    }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--danger);
+      color: #fff;
+      font-size: 10px; font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .sidebar-footer {
+      padding: 14px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .user-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-app);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+    }
+    .user-avatar {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--brand), #034e01);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 14px; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .user-role { font-size: 11px; color: var(--text-muted); }
+    .logout-btn {
+      width: 100%; height: 38px;
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--danger); font-size: 13px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all 0.15s ease; font-family: inherit;
+    }
+    .logout-btn:hover { background: var(--danger-bg); border-color: var(--danger-border); }
+
+    /* Main area */
+    .main-area {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: var(--header-h);
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      position: sticky; top: 0; z-index: 90;
+      box-shadow: var(--shadow-sm);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .hamburger {
+      display: none;
+      background: none; border: none; cursor: pointer; padding: 6px;
+      border-radius: var(--radius-sm); color: var(--text-secondary);
+    }
+    .page-title { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+    .breadcrumb { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-status {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-danger { background: var(--danger-bg); color: var(--danger); }
+    .status-danger .status-dot { background: var(--danger); animation: pulse-red 1.5s infinite; }
+    .status-warning { background: var(--warning-bg); color: var(--warning); }
+    .status-warning .status-dot { background: var(--warning); }
+    .status-normal { background: var(--success-bg); color: var(--success); }
+    .status-normal .status-dot { background: var(--success); }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(203,5,37,0.4); }
+      50% { box-shadow: 0 0 0 5px rgba(203,5,37,0); }
+    }
+    .refresh-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 7px 12px;
+      font-size: 12px; font-weight: 700; color: var(--text-secondary);
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s ease; font-family: inherit;
+    }
+    .refresh-btn:hover { background: var(--bg-app); color: var(--text-primary); }
+
+    /* Content */
+    .content { padding: 28px; flex: 1; }
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* ═══════════════════════════════════════════════
+       CARDS & GRIDS
+    ═══════════════════════════════════════════════ */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+    }
+    .card-header {
+      padding: 18px 22px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+    .card-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .card-body { padding: 22px; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-card);
+      display: flex; align-items: flex-start; gap: 14px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .kpi-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .kpi-icon.green { background: var(--brand-light); color: var(--brand); }
+    .kpi-icon.red { background: var(--danger-bg); color: var(--danger); }
+    .kpi-icon.yellow { background: var(--warning-bg); color: var(--warning); }
+    .kpi-icon.blue { background: var(--info-bg); color: var(--info); }
+    .kpi-icon.purple { background: #f5f3ff; color: #7c3aed; }
+    .kpi-value { font-size: 28px; font-weight: 900; color: var(--text-primary); line-height: 1; }
+    .kpi-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-top: 4px; }
+    .kpi-trend {
+      font-size: 11px; font-weight: 700; margin-top: 6px;
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 20px;
+    }
+    .kpi-trend.up { color: var(--danger); background: var(--danger-bg); }
+    .kpi-trend.down { color: var(--success); background: var(--success-bg); }
+    .kpi-trend.neutral { color: var(--text-muted); background: var(--bg-app); }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-container { position: relative; height: 240px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+    /* ═══════════════════════════════════════════════
+       TABLE
+    ═══════════════════════════════════════════════ */
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      background: var(--bg-app); padding: 11px 16px;
+      text-align: left; font-size: 11px; font-weight: 800;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s ease; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-app); }
+    tbody td { padding: 13px 16px; color: var(--text-primary); vertical-align: middle; }
+    .td-muted { color: var(--text-secondary); }
+    .td-mono { font-family: 'Courier New', monospace; font-size: 12.5px; }
+
+    /* ═══════════════════════════════════════════════
+       BADGES / STATUS
+    ═══════════════════════════════════════════════ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 700;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-danger .badge-dot { background: var(--danger); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-warning .badge-dot { background: var(--warning); }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-success .badge-dot { background: var(--success); }
+    .badge-info { background: var(--info-bg); color: var(--info); }
+    .badge-info .badge-dot { background: var(--info); }
+    .badge-neutral { background: var(--bg-app); color: var(--text-secondary); }
+    .badge-neutral .badge-dot { background: var(--text-muted); }
+
+    /* ═══════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s ease; border: 1px solid transparent;
+      font-family: inherit; white-space: nowrap;
+    }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .btn-lg { padding: 11px 22px; font-size: 14px; }
+    .btn-green { background: var(--brand); color: #fff; box-shadow: 0 2px 8px rgba(5,118,2,0.25); }
+    .btn-green:hover { background: var(--brand-dark); transform: translateY(-1px); }
+    .btn-red { background: var(--danger); color: #fff; box-shadow: 0 2px 8px rgba(203,5,37,0.25); }
+    .btn-red:hover { background: var(--danger-dark); transform: translateY(-1px); }
+    .btn-outline { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+    .btn-outline:hover { background: var(--bg-app); color: var(--text-primary); }
+    .btn-ghost { background: none; color: var(--text-secondary); border-color: transparent; }
+    .btn-ghost:hover { background: var(--bg-app); color: var(--text-primary); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+    .btn-icon { padding: 6px; min-width: 32px; justify-content: center; }
+
+    /* ═══════════════════════════════════════════════
+       FORM COMPONENTS
+    ═══════════════════════════════════════════════ */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row .field-group { flex: 1; margin-bottom: 0; }
+    .search-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      transition: border-color 0.15s ease;
+    }
+    .search-bar:focus-within { border-color: var(--brand); }
+    .search-bar input {
+      border: none; outline: none; background: none;
+      font-size: 13.5px; color: var(--text-primary); font-family: inherit;
+      flex: 1; min-width: 0;
+    }
+    .search-bar svg { color: var(--text-muted); flex-shrink: 0; }
+    select.field-input { cursor: pointer; }
+    textarea.field-input { height: auto; padding: 10px 14px; resize: vertical; min-height: 80px; }
+
+    /* ═══════════════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════════════ */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      width: 100%; max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.92) translateY(20px);
+      transition: transform 0.2s cubic-bezier(0.16,1,0.3,1);
+    }
+    .modal-backdrop.open .modal { transform: scale(1) translateY(0); }
+    .modal-lg { max-width: 720px; }
+    .modal-header {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .modal-title { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+    .modal-subtitle { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; }
+    .modal-close {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: var(--text-muted); display: flex; align-items: center; border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .modal-close:hover { background: var(--bg-app); color: var(--text-primary); }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .confirm-danger-box {
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .confirm-danger-box .title { font-size: 14px; font-weight: 800; color: var(--danger); margin-bottom: 4px; }
+    .confirm-danger-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ═══════════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════════ */
+    #toast-container {
+      position: fixed; top: 20px; right: 20px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      max-width: 360px;
+      pointer-events: all;
+      animation: slideInToast 0.3s cubic-bezier(0.16,1,0.3,1);
+      font-size: 13.5px; font-weight: 600;
+    }
+    .toast-success { background: #fff; border-left: 4px solid var(--success); color: var(--text-primary); }
+    .toast-error { background: #fff; border-left: 4px solid var(--danger); color: var(--text-primary); }
+    .toast-warning { background: #fff; border-left: 4px solid var(--warning); color: var(--text-primary); }
+    .toast-info { background: #fff; border-left: 4px solid var(--info); color: var(--text-primary); }
+    .toast-icon { flex-shrink: 0; margin-top: 1px; }
+    @keyframes slideInToast {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       LOADING STATES
+    ═══════════════════════════════════════════════ */
+    .loading-skeleton {
+      background: linear-gradient(90deg, var(--bg-app) 25%, var(--border) 50%, var(--bg-app) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+      height: 16px;
+    }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .empty-state {
+      text-align: center; padding: 60px 24px; color: var(--text-muted);
+    }
+    .empty-state svg { margin-bottom: 16px; opacity: 0.4; }
+    .empty-state p { font-size: 14px; font-weight: 600; }
+    .empty-state span { font-size: 13px; color: var(--text-muted); margin-top: 4px; display: block; }
+
+    /* ═══════════════════════════════════════════════
+       SOP CHECKLIST
+    ═══════════════════════════════════════════════ */
+    .task-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-check {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid var(--border); background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; margin-top: 1px;
+      transition: all 0.15s ease;
+    }
+    .task-check.done { background: var(--success); border-color: var(--success); }
+    .task-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .task-title.done { text-decoration: line-through; color: var(--text-muted); }
+    .task-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+
+    /* ═══════════════════════════════════════════════
+       REROUTE FLOW
+    ═══════════════════════════════════════════════ */
+    .sector-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      cursor: pointer; transition: all 0.15s ease;
+      background: #fff;
+    }
+    .sector-card:hover { border-color: var(--brand-light); background: var(--brand-lighter); }
+    .sector-card.selected { border-color: var(--brand); background: var(--brand-lighter); }
+    .sector-card.danger-sector { border-color: var(--danger-border); }
+    .sector-card-code { font-size: 22px; font-weight: 900; color: var(--text-primary); }
+    .sector-card-name { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .sector-card-stats { margin-top: 10px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .sector-stat { font-size: 12px; color: var(--text-muted); }
+    .sector-stat strong { color: var(--text-primary); }
+    .sectors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+    .flow-step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--text-muted); margin-bottom: 20px;
+    }
+    .flow-step-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 20px;
+      font-weight: 700;
+    }
+    .flow-step-item.active { background: var(--brand-light); color: var(--brand); }
+    .flow-step-item.done { background: var(--success-bg); color: var(--success); }
+    .flow-step-item.inactive { background: var(--bg-app); color: var(--text-muted); }
+    .flow-arrow { color: var(--border-light); }
+
+    /* ═══════════════════════════════════════════════
+       AUDIT LOG
+    ═══════════════════════════════════════════════ */
+    .audit-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .audit-row:last-child { border-bottom: none; }
+    .audit-dot {
+      width: 32px; height: 32px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .audit-action { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+    .audit-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       PAGINATION
+    ═══════════════════════════════════════════════ */
+    .pagination {
+      display: flex; align-items: center; gap: 6px;
+      padding: 16px 22px;
+      border-top: 1px solid var(--border);
+      justify-content: flex-end;
+    }
+    .pg-btn {
+      min-width: 34px; height: 34px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: all 0.15s ease; font-family: inherit;
+    }
+    .pg-btn:hover { background: var(--bg-app); color: var(--text-primary); }
+    .pg-btn.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pg-info { font-size: 12.5px; color: var(--text-muted); margin-right: 8px; }
+
+    /* ═══════════════════════════════════════════════
+       FILTER BAR
+    ═══════════════════════════════════════════════ */
+    .filter-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 16px 22px; border-bottom: 1px solid var(--border);
+      background: var(--bg-app);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .filter-bar .search-bar { flex: 1; min-width: 200px; }
+    .filter-select {
+      height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0 32px 0 12px; font-size: 13px; color: var(--text-primary);
+      background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236F767E' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center;
+      appearance: none; cursor: pointer; outline: none; font-family: inherit;
+    }
+    .filter-select:focus { border-color: var(--brand); }
+
+    /* ═══════════════════════════════════════════════
+       MOBILE RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    .mobile-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 99; backdrop-filter: blur(2px);
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+        z-index: 150;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main-area { margin-left: 0; }
+      .hamburger { display: flex; }
+      .mobile-overlay { display: block; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+      .mobile-overlay.open { opacity: 1; pointer-events: all; }
+      .content { padding: 16px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      .three-col { grid-template-columns: repeat(2, 1fr); }
+      .sectors-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .three-col { grid-template-columns: 1fr; }
+      .form-row { flex-direction: column; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .filter-bar .search-bar { flex: none; }
+      .topbar { padding: 0 16px; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       HELPER UTILITIES
+    ═══════════════════════════════════════════════ */
+    .flex { display: flex; }
+    .flex-center { display: flex; align-items: center; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .text-sm { font-size: 12.5px; }
+    .text-muted { color: var(--text-muted); }
+    .text-danger { color: var(--danger); }
+    .text-success { color: var(--success); }
+    .font-bold { font-weight: 700; }
+    .font-black { font-weight: 900; }
+    .w-full { width: 100%; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* Progress bar */
+    .progress-bar { height: 6px; border-radius: 3px; background: var(--bg-app); overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .progress-green { background: var(--brand); }
+    .progress-yellow { background: var(--warning); }
+    .progress-red { background: var(--danger); }
+  </style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-icon">
+        <svg width="22" height="16" viewBox="0 0 19 13" fill="none">
+          <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Metamon</h1>
+        <p>TPA Bantar Gebang — Sistem Telemetri Gas Metana</p>
+      </div>
+    </div>
+    <div class="admin-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Panel Admin
+    </div>
+    <h2 class="login-subtitle">Masuk ke Dasbor Admin</h2>
+    <div id="login-error" class="error-msg" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="login-error-msg"></span>
+    </div>
+    <form id="login-form">
+      <div class="field-group">
+        <label class="field-label">NIP Petugas</label>
+        <input type="text" id="login-nip" class="field-input" placeholder="Contoh: 19880415 201201 2 004" autocomplete="username" required />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Kata Sandi</label>
+        <div class="pw-wrapper">
+          <input type="password" id="login-password" class="field-input" placeholder="Masukkan kata sandi" autocomplete="current-password" required />
+          <button type="button" class="pw-toggle" id="pw-toggle-btn" title="Tampilkan/sembunyikan">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="login-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Masuk
+      </button>
+    </form>
+    <p class="login-hint">Demo: NIP <strong>19880415 201201 2 004</strong> / Sandi: <strong>admin123</strong></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="app" style="display:none">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg width="18" height="12" viewBox="0 0 19 13" fill="none">
+          <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-text">Metamon</div>
+        <div class="brand-label">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Utama</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="monitoring" onclick="navigate('monitoring')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Monitoring & Grafik
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">Operasional</div>
+      <div class="nav-item" data-page="incidents" onclick="navigate('incidents')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Lapor Insiden
+        <span class="nav-badge" id="open-incidents-badge" style="display:none">!</span>
+      </div>
+      <div class="nav-item" data-page="sop" onclick="navigate('sop')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+        Protokol SOP
+      </div>
+      <div class="nav-item" data-page="reroute" onclick="navigate('reroute')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><polyline points="12 2 15 5 12 8"/></svg>
+        Pengalihan Rute
+      </div>
+      <div class="nav-section-label" style="margin-top:8px">Manajemen</div>
+      <div class="nav-item" data-page="officers" onclick="navigate('officers')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Kelola Petugas
+      </div>
+      <div class="nav-item" data-page="audit-log" onclick="navigate('audit-log')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Audit Log
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div>
+          <div class="user-name" id="sidebar-name">Loading...</div>
+          <div class="user-role text-sm text-muted" id="sidebar-role" style="font-size:11px">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Keluar Akun
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <div class="main-area">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger btn btn-ghost btn-icon" onclick="toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="page-title" id="topbar-title">Dashboard</div>
+          <div class="breadcrumb" id="topbar-breadcrumb">Metamon Admin › Dashboard</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-status" id="system-status-badge">
+          <div class="status-dot"></div>
+          <span>Memuat...</span>
+        </div>
+        <button class="refresh-btn" onclick="refreshCurrentPage()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- ══════════════════ DASHBOARD ══════════════════ -->
+      <div id="page-dashboard" class="page-section active">
+        <div class="kpi-grid" id="kpi-grid">
+          <!-- KPI cards injected by JS -->
+          <div class="kpi-card"><div style="flex:1"><div class="loading-skeleton mb-4" style="width:60%;height:12px"></div><div class="loading-skeleton" style="width:40%;height:28px"></div></div></div>
+          <div class="kpi-card"><div style="flex:1"><div class="loading-skeleton mb-4" style="width:60%;height:12px"></div><div class="loading-skeleton" style="width:40%;height:28px"></div></div></div>
+          <div class="kpi-card"><div style="flex:1"><div class="loading-skeleton mb-4" style="width:60%;height:12px"></div><div class="loading-skeleton" style="width:40%;height:28px"></div></div></div>
+          <div class="kpi-card"><div style="flex:1"><div class="loading-skeleton mb-4" style="width:60%;height:12px"></div><div class="loading-skeleton" style="width:40%;height:28px"></div></div></div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Tren CH4 Harian (7 Hari)</div>
+                <div class="card-subtitle">Rata-rata konsentrasi metana per hari (ppm)</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart-container"><canvas id="chart-ch4-daily"></canvas></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Status Sektor</div>
+            </div>
+            <div class="card-body">
+              <div class="chart-container"><canvas id="chart-sector-status"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Status Sektor TPA</div>
+            </div>
+            <div class="card-body" id="sector-status-list">
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Insiden Terbaru</div>
+              <button class="btn btn-sm btn-outline" onclick="navigate('incidents')">Lihat Semua</button>
+            </div>
+            <div class="card-body" id="recent-incidents">
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-6">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Armada Truk</div>
+              <div class="card-subtitle">Status pengalihan rute truk saat ini</div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="navigate('reroute')">Kelola Rute</button>
+          </div>
+          <div class="card-body" id="truck-overview">
+            <div class="loading-skeleton mb-4"></div>
+            <div class="loading-skeleton"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ MONITORING ══════════════════ -->
+      <div id="page-monitoring" class="page-section">
+        <div class="kpi-grid mb-6" id="monitoring-kpi-grid"></div>
+        <div class="three-col">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Komposisi Status Node</div></div>
+            <div class="card-body"><div class="chart-container"><canvas id="chart-node-status"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Kapasitas Sektor (%)</div></div>
+            <div class="card-body"><div class="chart-container"><canvas id="chart-sector-cap"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Status Armada Truk</div></div>
+            <div class="card-body"><div class="chart-container"><canvas id="chart-truck-status"></canvas></div></div>
+          </div>
+        </div>
+        <div class="card mb-6">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Tren CH4 — 7 Hari Terakhir</div>
+              <div class="card-subtitle">CH4 rata-rata & maksimum harian (ppm)</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="height:280px"><canvas id="chart-ch4-trend"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">CH4 per Sektor Saat Ini</div></div>
+          <div class="card-body">
+            <div style="height:260px"><canvas id="chart-ch4-per-sector"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ INSIDEN ══════════════════ -->
+      <div id="page-incidents" class="page-section">
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-bar" style="flex:1;min-width:220px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="incident-search" placeholder="Cari insiden..." oninput="filterIncidents()" />
+            </div>
+            <select class="filter-select" id="incident-status-filter" onchange="filterIncidents()">
+              <option value="all">Semua Status</option>
+              <option value="open">Open</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            <select class="filter-select" id="incident-sector-filter" onchange="filterIncidents()">
+              <option value="">Semua Sektor</option>
+              <option value="A">Sektor A</option>
+              <option value="B">Sektor B</option>
+              <option value="C">Sektor C</option>
+              <option value="D">Sektor D</option>
+            </select>
+            <button class="btn btn-red" onclick="openCreateIncidentModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Lapor Insiden
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table id="incidents-table">
+              <thead>
+                <tr>
+                  <th>Judul</th>
+                  <th>Sektor</th>
+                  <th>Status</th>
+                  <th>Dibuat</th>
+                  <th>Diselesaikan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="incidents-tbody">
+                <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-muted)">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="incidents-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ SOP ══════════════════ -->
+      <div id="page-sop" class="page-section">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Checklist Protokol Tanggap Darurat</div>
+                <div class="card-subtitle" id="sop-progress-text">Memuat...</div>
+              </div>
+              <button class="btn btn-red" onclick="openBroadcastModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                Broadcast Darurat
+              </button>
+            </div>
+            <div class="card-body" id="sop-tasks-list">
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Riwayat Insiden</div>
+            </div>
+            <div class="card-body" id="sop-incidents-list">
+              <div class="loading-skeleton mb-4"></div>
+              <div class="loading-skeleton"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ REROUTE ══════════════════ -->
+      <div id="page-reroute" class="page-section">
+        <!-- Step indicator -->
+        <div class="flow-step mb-6" id="reroute-steps">
+          <div class="flow-step-item active" id="step-1-indicator">1. Pilih Sektor Asal</div>
+          <span class="flow-arrow">›</span>
+          <div class="flow-step-item inactive" id="step-2-indicator">2. Pilih Tujuan</div>
+          <span class="flow-arrow">›</span>
+          <div class="flow-step-item inactive" id="step-3-indicator">3. Konfirmasi</div>
+          <span class="flow-arrow">›</span>
+          <div class="flow-step-item inactive" id="step-4-indicator">4. Selesai</div>
+        </div>
+
+        <!-- Step 1: Choose source sector -->
+        <div id="reroute-step-1">
+          <div class="card mb-6">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Langkah 1: Pilih Sektor Asal (Sektor yang Bermasalah)</div>
+                <div class="card-subtitle">Pilih sektor yang sedang dalam kondisi darurat / penuh</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="sectors-grid" id="reroute-from-sectors">
+                <div class="loading-skeleton" style="height:120px"></div>
+                <div class="loading-skeleton" style="height:120px"></div>
+                <div class="loading-skeleton" style="height:120px"></div>
+                <div class="loading-skeleton" style="height:120px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Choose destination sector -->
+        <div id="reroute-step-2" style="display:none">
+          <div class="card mb-4">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Langkah 2: Pilih Sektor Tujuan Alternatif</div>
+                <div class="card-subtitle">Pilih sektor yang masih dapat menerima truk</div>
+              </div>
+              <button class="btn btn-outline" onclick="rerouteBack(1)">← Kembali</button>
+            </div>
+            <div class="card-body">
+              <div class="sectors-grid" id="reroute-to-sectors"></div>
+            </div>
+          </div>
+          <div class="card" id="trucks-affected-card">
+            <div class="card-header"><div class="card-title">Truk yang Akan Dialihkan</div></div>
+            <div class="table-wrapper">
+              <table>
+                <thead><tr><th>Nomor Plat</th><th>Sektor Asal</th><th>Status Saat Ini</th></tr></thead>
+                <tbody id="affected-trucks-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="reroute-step-3" style="display:none">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Langkah 3: Konfirmasi Pengalihan Rute</div>
+                <div class="card-subtitle">Tinjau kembali sebelum mengeksekusi</div>
+              </div>
+              <button class="btn btn-outline" onclick="rerouteBack(2)">← Kembali</button>
+            </div>
+            <div class="card-body">
+              <div class="confirm-danger-box">
+                <div class="title">⚠️ Tindakan Kritis — Harap Periksa Kembali</div>
+                <p>Eksekusi ini akan mengalihkan seluruh truk dari sektor asal ke sektor tujuan. Tindakan ini akan dicatat dalam audit log.</p>
+              </div>
+              <div class="two-col" style="margin-bottom:20px">
+                <div style="background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:var(--radius-md);padding:20px">
+                  <div style="font-size:12px;color:var(--danger);font-weight:700;margin-bottom:6px">DARI (Sektor Asal)</div>
+                  <div style="font-size:24px;font-weight:900;color:var(--text-primary)" id="confirm-from-code">—</div>
+                  <div style="font-size:13px;color:var(--text-secondary)" id="confirm-from-name">—</div>
+                </div>
+                <div style="background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-md);padding:20px">
+                  <div style="font-size:12px;color:var(--success);font-weight:700;margin-bottom:6px">KE (Sektor Tujuan)</div>
+                  <div style="font-size:24px;font-weight:900;color:var(--text-primary)" id="confirm-to-code">—</div>
+                  <div style="font-size:13px;color:var(--text-secondary)" id="confirm-to-name">—</div>
+                </div>
+              </div>
+              <p class="text-sm text-muted mb-6" id="confirm-count-text">— truk akan dialihkan</p>
+              <div class="flex gap-3">
+                <button class="btn btn-green btn-lg" id="execute-reroute-btn" onclick="executeReroute()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Eksekusi Pengalihan
+                </button>
+                <button class="btn btn-outline btn-lg" onclick="rerouteBack(2)">Batal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Result -->
+        <div id="reroute-step-4" style="display:none">
+          <div class="card">
+            <div class="card-body" style="text-align:center;padding:60px">
+              <div style="width:72px;height:72px;background:var(--success-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <h3 style="font-size:20px;font-weight:900;color:var(--text-primary);margin-bottom:8px">Pengalihan Berhasil Dieksekusi!</h3>
+              <p class="text-muted text-sm mb-6" id="reroute-success-msg">—</p>
+              <div style="display:flex;gap:12px;justify-content:center">
+                <button class="btn btn-green" onclick="resetReroute()">Pengalihan Lain</button>
+                <button class="btn btn-outline" onclick="navigate('dashboard')">Kembali ke Dashboard</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ OFFICERS ══════════════════ -->
+      <div id="page-officers" class="page-section">
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-bar" style="flex:1;min-width:220px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="officer-search" placeholder="Cari nama, NIP, atau jabatan..." oninput="loadOfficers()" />
+            </div>
+            <button class="btn btn-green" onclick="openOfficerModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Petugas
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Petugas</th>
+                  <th>NIP</th>
+                  <th>Jabatan</th>
+                  <th>Dibuat</th>
+                  <th>Login Terakhir</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="officers-tbody">
+                <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-muted)">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="officers-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ AUDIT LOG ══════════════════ -->
+      <div id="page-audit-log" class="page-section">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Audit Log Sistem</div>
+              <div class="card-subtitle">Riwayat login dan aktivitas semua petugas</div>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Petugas</th>
+                  <th>NIP</th>
+                  <th>Perangkat</th>
+                  <th>IP Address</th>
+                  <th>Lokasi</th>
+                  <th>Status Sesi</th>
+                  <th>Waktu Login</th>
+                </tr>
+              </thead>
+              <tbody id="audit-tbody">
+                <tr><td colspan="7" style="padding:40px;text-align:center;color:var(--text-muted)">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="audit-pagination"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- Create/Edit Incident Modal -->
+<div class="modal-backdrop" id="incident-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="incident-modal-title">Lapor Insiden Baru</div>
+        <div class="modal-subtitle">Buat laporan insiden K3 di area TPA</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('incident-modal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="incident-form">
+        <div class="field-group">
+          <label class="field-label">Judul Insiden *</label>
+          <input type="text" id="incident-title" class="field-input" placeholder="Contoh: Tekanan Balik Pipa Lindi" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Deskripsi *</label>
+          <textarea id="incident-desc" class="field-input" rows="3" placeholder="Deskripsi lengkap insiden..." required></textarea>
+        </div>
+        <div class="form-row">
+          <div class="field-group">
+            <label class="field-label">Sektor Terdampak</label>
+            <select id="incident-sector" class="field-input">
+              <option value="">Pilih sektor (opsional)</option>
+              <option value="A">Sektor A</option>
+              <option value="B">Sektor B</option>
+              <option value="C">Sektor C</option>
+              <option value="D">Sektor D</option>
+            </select>
+          </div>
+          <div class="field-group" id="incident-status-field" style="display:none">
+            <label class="field-label">Status</label>
+            <select id="incident-status" class="field-input">
+              <option value="open">Open</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group" id="incident-mitigation-field" style="display:none">
+          <label class="field-label">Catatan Penanganan</label>
+          <textarea id="incident-mitigation" class="field-input" rows="3" placeholder="Tindakan mitigasi yang dilakukan..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('incident-modal')">Batal</button>
+      <button class="btn btn-red" id="save-incident-btn" onclick="saveIncident()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Simpan Insiden
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Incident Status Modal -->
+<div class="modal-backdrop" id="update-incident-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Update Status Insiden</div>
+        <div class="modal-subtitle" id="update-incident-subtitle">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('update-incident-modal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Status Insiden</label>
+        <select id="update-incident-status" class="field-input">
+          <option value="open">Open — Sedang Ditangani</option>
+          <option value="resolved">Resolved — Selesai</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Catatan Penanganan</label>
+        <textarea id="update-incident-notes" class="field-input" rows="4" placeholder="Catatan tindakan yang dilakukan..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('update-incident-modal')">Batal</button>
+      <button class="btn btn-green" id="update-incident-btn" onclick="saveUpdateIncident()">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Broadcast Modal -->
+<div class="modal-backdrop" id="broadcast-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" style="color:var(--danger)">🚨 Broadcast Peringatan Dini</div>
+        <div class="modal-subtitle">Kirim peringatan ke Tim Operasional TPA & Damkar</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('broadcast-modal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-danger-box">
+        <div class="title">Tindakan Darurat — Konfirmasi Diperlukan</div>
+        <p>Broadcast ini akan dikirimkan ke seluruh tim operasional. Pastikan kondisi darurat memang terjadi sebelum mengkonfirmasi.</p>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Sektor Terdampak</label>
+        <select id="broadcast-sector" class="field-input">
+          <option value="">Semua Sektor</option>
+          <option value="A">Sektor A</option>
+          <option value="B">Sektor B</option>
+          <option value="C">Sektor C</option>
+          <option value="D">Sektor D</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Pesan Peringatan</label>
+        <textarea id="broadcast-message" class="field-input" rows="3">Peringatan Dini (Alert Broadcast) dikirimkan ke Tim Operasional TPA & Damkar.</textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('broadcast-modal')">Batal</button>
+      <button class="btn btn-red" id="broadcast-btn" onclick="sendBroadcast()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        Kirim Broadcast Darurat
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Officer Create/Edit Modal -->
+<div class="modal-backdrop" id="officer-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="officer-modal-title">Tambah Petugas Baru</div>
+        <div class="modal-subtitle">Isi data petugas dengan lengkap dan benar</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('officer-modal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="officer-form">
+        <div class="form-row">
+          <div class="field-group">
+            <label class="field-label">Nama Lengkap *</label>
+            <input type="text" id="officer-name" class="field-input" placeholder="Contoh: Ratna Sari Dewi" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Gelar / Credentials</label>
+            <input type="text" id="officer-credentials" class="field-input" placeholder="Contoh: S.T., M.Ling." />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field-group">
+            <label class="field-label">NIP *</label>
+            <input type="text" id="officer-nip" class="field-input" placeholder="Contoh: 19880415 201201 2 004" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Jabatan / Role *</label>
+            <input type="text" id="officer-role" class="field-input" placeholder="Contoh: Koordinator K3 TPA" required />
+          </div>
+        </div>
+        <div class="field-group" id="officer-password-group">
+          <label class="field-label">Kata Sandi *</label>
+          <div class="pw-wrapper">
+            <input type="password" id="officer-password" class="field-input" placeholder="Minimal 8 karakter" />
+            <button type="button" class="pw-toggle" onclick="toggleOfficerPw()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="text-sm text-muted mt-1" id="officer-password-hint"></span>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('officer-modal')">Batal</button>
+      <button class="btn btn-green" id="save-officer-btn" onclick="saveOfficer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="save-officer-label">Simpan Petugas</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--danger)">Hapus Petugas</div>
+      <button class="modal-close" onclick="closeModal('delete-modal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-danger-box">
+        <div class="title">Tindakan Tidak Dapat Dibatalkan</div>
+        <p id="delete-confirm-text">Apakah Anda yakin ingin menghapus petugas ini? Semua data terkait akan dihapus permanen.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('delete-modal')">Batal</button>
+      <button class="btn btn-red" id="confirm-delete-btn" onclick="confirmDelete()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Ya, Hapus Petugas
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════════════
+const API_BASE = 'http://localhost:3001/api/v1';
+const TOKEN_KEY = 'metamon_admin_token';
+const USER_KEY = 'metamon_admin_user';
+
+let state = {
+  token: localStorage.getItem(TOKEN_KEY),
+  user: null,
+  currentPage: 'dashboard',
+  charts: {},
+  // Reroute flow
+  rerouteStep: 1,
+  rerouteFromSector: null,
+  rerouteToSector: null,
+  sectors: [],
+  trucks: [],
+  // Incidents
+  incidentsPage: 1,
+  incidentTotal: 0,
+  editingIncidentId: null,
+  updatingIncidentId: null,
+  // Officers
+  officersPage: 1,
+  officerTotal: 0,
+  editingOfficerId: null,
+  deletingOfficerId: null,
+  // Audit logs
+  auditPage: 1,
+  // Admin stats cache
+  adminStats: null,
+  dashboardData: null,
+};
+
+try {
+  const stored = localStorage.getItem(USER_KEY);
+  if (stored) state.user = JSON.parse(stored);
+} catch {}
+
+// ═══════════════════════════════════════════════════════════
+// API HELPERS
+// ═══════════════════════════════════════════════════════════
+async function api(path, options = {}) {
+  const { body, method = 'GET', params } = options;
+  let url = `${API_BASE}${path}`;
+  if (params) {
+    const qs = new URLSearchParams(Object.entries(params).filter(([,v]) => v !== undefined && v !== null && v !== '').map(([k,v]) => [k, String(v)])).toString();
+    if (qs) url += `?${qs}`;
+  }
+  const headers = { 'Content-Type': 'application/json' };
+  if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  if (res.status === 401) { handleUnauthorized(); throw new Error('Sesi berakhir'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+  return data;
+}
+
+function handleUnauthorized() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  state.token = null;
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type = 'success', duration = 4000) {
+  const icons = {
+    success: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    warning: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(100%)'; el.style.transition = '0.3s ease'; setTimeout(() => el.remove(), 300); }, duration);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Close on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+// Toggle PW visibility on login
+let loginShowPw = false;
+document.getElementById('pw-toggle-btn').addEventListener('click', () => {
+  loginShowPw = !loginShowPw;
+  document.getElementById('login-password').type = loginShowPw ? 'text' : 'password';
+});
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const nip = document.getElementById('login-nip').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-error');
+  const errMsg = document.getElementById('login-error-msg');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  errEl.style.display = 'none';
+
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: { nip, password } });
+    state.token = data.data.accessToken;
+    state.user = data.data.officer;
+    localStorage.setItem(TOKEN_KEY, state.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initApp();
+    toast(`Selamat datang, ${state.user.name}!`, 'success');
+  } catch (err) {
+    errMsg.textContent = err.message || 'Login gagal. Periksa NIP dan kata sandi.';
+    errEl.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Masuk';
+  }
+});
+
+async function doLogout() {
+  try { await api('/auth/logout', { method: 'POST' }); } catch {}
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+function initApp() {
+  updateSidebarUser();
+  navigate('dashboard');
+}
+
+function updateSidebarUser() {
+  if (!state.user) return;
+  const name = state.user.name || 'Petugas';
+  document.getElementById('sidebar-name').textContent = name;
+  document.getElementById('sidebar-role').textContent = state.user.role || '—';
+  document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+}
+
+// Auto-start if already logged in
+if (state.token) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard: ['Dashboard', 'Metamon Admin › Dashboard'],
+  monitoring: ['Monitoring & Grafik', 'Metamon Admin › Monitoring'],
+  incidents: ['Laporan Insiden', 'Metamon Admin › Insiden'],
+  sop: ['Protokol SOP', 'Metamon Admin › SOP'],
+  reroute: ['Pengalihan Rute', 'Metamon Admin › Reroute'],
+  officers: ['Kelola Petugas', 'Metamon Admin › Petugas'],
+  'audit-log': ['Audit Log', 'Metamon Admin › Audit Log'],
+};
+
+function navigate(page) {
+  state.currentPage = page;
+  // Update nav items
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  // Update page sections
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  const section = document.getElementById(`page-${page}`);
+  if (section) section.classList.add('active');
+  // Update topbar
+  const [title, breadcrumb] = PAGE_TITLES[page] || [page, `Metamon Admin › ${page}`];
+  document.getElementById('topbar-title').textContent = title;
+  document.getElementById('topbar-breadcrumb').textContent = breadcrumb;
+  // Close mobile sidebar
+  closeSidebar();
+  // Load page data
+  loadPage(page);
+}
+
+function refreshCurrentPage() { loadPage(state.currentPage); }
+
+function loadPage(page) {
+  switch (page) {
+    case 'dashboard': loadDashboard(); break;
+    case 'monitoring': loadMonitoring(); break;
+    case 'incidents': loadIncidents(); break;
+    case 'sop': loadSop(); break;
+    case 'reroute': loadReroute(); break;
+    case 'officers': loadOfficers(); break;
+    case 'audit-log': loadAuditLog(); break;
+  }
+}
+
+// Sidebar toggle for mobile
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobile-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobile-overlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function fmtDateTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function statusBadge(status) {
+  if (status === 'open') return '<span class="badge badge-danger"><span class="badge-dot"></span>Open</span>';
+  if (status === 'resolved') return '<span class="badge badge-success"><span class="badge-dot"></span>Resolved</span>';
+  if (status === 'danger' || status === 'locked') return '<span class="badge badge-danger"><span class="badge-dot"></span>' + (status === 'locked' ? 'Terkunci' : 'Bahaya') + '</span>';
+  if (status === 'warning') return '<span class="badge badge-warning"><span class="badge-dot"></span>Waspada</span>';
+  if (status === 'normal') return '<span class="badge badge-success"><span class="badge-dot"></span>Normal</span>';
+  return `<span class="badge badge-neutral">${status}</span>`;
+}
+function ch4Badge(ppm) {
+  const n = parseFloat(ppm);
+  if (n >= 1000) return `<span class="badge badge-danger">${n} ppm</span>`;
+  if (n >= 500) return `<span class="badge badge-warning">${n} ppm</span>`;
+  return `<span class="badge badge-success">${n} ppm</span>`;
+}
+function renderPagination(containerId, currentPage, totalPages, onPage) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = `<span class="pg-info">Hal ${currentPage} / ${totalPages || 1}</span>`;
+  html += `<button class="pg-btn" onclick="${onPage}(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>`;
+  for (let i = 1; i <= Math.min(totalPages, 7); i++) {
+    if (totalPages > 7 && i > 3 && i < totalPages - 1) { html += '<span style="color:var(--text-muted);padding:0 4px">…</span>'; i = totalPages - 1; continue; }
+    html += `<button class="pg-btn ${i === currentPage ? 'active' : ''}" onclick="${onPage}(${i})">${i}</button>`;
+  }
+  html += `<button class="pg-btn" onclick="${onPage}(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>`;
+  el.innerHTML = html;
+}
+function destroyChart(key) { if (state.charts[key]) { state.charts[key].destroy(); delete state.charts[key]; } }
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const [telemetry, adminStats, incidents, trucks] = await Promise.all([
+      api('/telemetry/dashboard'),
+      api('/telemetry/admin-stats'),
+      api('/sop/incidents', { params: { status: 'all', limit: 5 } }),
+      api('/trucks'),
+    ]);
+    state.adminStats = adminStats.data;
+    state.dashboardData = telemetry.data;
+
+    // Update system status badge
+    const riskLevel = telemetry.data.riskLevel;
+    const statusBadgeEl = document.getElementById('system-status-badge');
+    if (riskLevel === 'danger') {
+      statusBadgeEl.className = 'topbar-status status-danger';
+      statusBadgeEl.innerHTML = '<div class="status-dot"></div><span>⚠️ Kondisi Bahaya</span>';
+    } else if (riskLevel === 'warning') {
+      statusBadgeEl.className = 'topbar-status status-warning';
+      statusBadgeEl.innerHTML = '<div class="status-dot"></div><span>Waspada</span>';
+    } else {
+      statusBadgeEl.className = 'topbar-status status-normal';
+      statusBadgeEl.innerHTML = '<div class="status-dot"></div><span>Sistem Normal</span>';
+    }
+
+    // Update open incidents badge
+    const openCount = (incidents.data?.incidents || []).filter(i => i.status === 'open').length;
+    const badge = document.getElementById('open-incidents-badge');
+    if (openCount > 0) { badge.textContent = openCount; badge.style.display = ''; }
+
+    renderKpiGrid(telemetry.data, adminStats.data, trucks.data);
+    renderSectorStatusList(adminStats.data.sectorStatusBreakdown);
+    renderRecentIncidents(incidents.data?.incidents || []);
+    renderTruckOverview(trucks.data);
+    renderDashboardCharts(adminStats.data);
+  } catch (e) {
+    toast('Gagal memuat dashboard: ' + e.message, 'error');
+  }
+}
+
+function renderKpiGrid(telemetry, stats, trucks) {
+  const kpis = [
+    { icon: 'green', label: 'Sensor Aktif', value: `${telemetry.activeNodes}/${telemetry.totalNodes}`, trend: `${telemetry.activeNodePercent}%`, trendType: 'neutral', iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>' },
+    { icon: 'red', label: 'Rata-rata CH4', value: `${telemetry.avgCh4Ppm}`, trend: `${telemetry.ch4TrendPercent24h > 0 ? '+' : ''}${telemetry.ch4TrendPercent24h}% 24j`, trendType: telemetry.ch4TrendPercent24h > 0 ? 'up' : 'down', iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', valueLabel: 'ppm' },
+    { icon: 'yellow', label: 'Sektor Bahaya', value: `${stats.overview.dangerSectors}`, trend: `${stats.overview.warningSectors} waspada`, trendType: 'neutral', iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
+    { icon: 'blue', label: 'Truk Dialihkan', value: `${telemetry.reroutedTrucks}`, trend: `${trucks?.summary?.total || 0} total`, trendType: 'neutral', iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><polyline points="12 2 15 5 12 8"/></svg>' },
+    { icon: 'green', label: 'Sektor Normal', value: `${stats.overview.normalSectors}`, trend: `dari ${stats.overview.totalSectors} total`, trendType: 'neutral', iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' },
+    { icon: 'purple', label: 'Total Truk', value: `${trucks?.summary?.total || 0}`, trend: `${trucks?.summary?.normalCount || 0} on-track`, trendType: 'neutral', iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' },
+  ];
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-icon ${k.icon}">${k.iconSvg}</div>
+      <div>
+        <div class="kpi-value">${k.value} <span style="font-size:14px;font-weight:600;color:var(--text-muted)">${k.valueLabel || ''}</span></div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-trend ${k.trendType}">${k.trend}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSectorStatusList(sectors) {
+  if (!sectors) return;
+  document.getElementById('sector-status-list').innerHTML = sectors.map(s => {
+    const pct = s.capacityPercent;
+    const barClass = pct >= 90 ? 'progress-red' : pct >= 60 ? 'progress-yellow' : 'progress-green';
+    return `
+      <div style="margin-bottom:18px">
+        <div class="flex-between mb-4">
+          <div class="flex-center gap-2">
+            <span style="font-size:15px;font-weight:900;color:var(--text-primary)">${s.name}</span>
+            ${statusBadge(s.status)}
+          </div>
+          <span style="font-size:13px;font-weight:700;color:var(--text-secondary)">${pct}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${barClass}" style="width:${pct}%"></div></div>
+        <div class="flex-between mt-2">
+          <span class="text-sm text-muted">${s.isAcceptingTrucks ? '✓ Menerima truk' : '✗ Tidak menerima truk'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderRecentIncidents(incidents) {
+  if (!incidents.length) {
+    document.getElementById('recent-incidents').innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>Tidak ada insiden terbaru</p></div>';
+    return;
+  }
+  document.getElementById('recent-incidents').innerHTML = incidents.map(i => `
+    <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="min-width:0">
+        <div class="truncate" style="font-size:13.5px;font-weight:700;color:var(--text-primary);max-width:240px">${i.title}</div>
+        <div class="text-sm text-muted mt-1">${i.sector?.name || 'Umum'} · ${fmtDate(i.createdAt)}</div>
+      </div>
+      ${statusBadge(i.status)}
+    </div>
+  `).join('');
+}
+
+function renderTruckOverview(truckData) {
+  if (!truckData) return;
+  const trucks = truckData.trucks || [];
+  const summary = truckData.summary || {};
+  document.getElementById('truck-overview').innerHTML = `
+    <div class="flex gap-4 mb-6" style="flex-wrap:wrap">
+      <div style="text-align:center;padding:12px 20px;background:var(--bg-app);border-radius:var(--radius-md);flex:1;min-width:100px">
+        <div style="font-size:24px;font-weight:900;color:var(--text-primary)">${summary.total || 0}</div>
+        <div class="text-sm text-muted">Total Truk</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--danger-bg);border-radius:var(--radius-md);flex:1;min-width:100px">
+        <div style="font-size:24px;font-weight:900;color:var(--danger)">${summary.reroutedCount || 0}</div>
+        <div class="text-sm" style="color:var(--danger)">Dialihkan</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--success-bg);border-radius:var(--radius-md);flex:1;min-width:100px">
+        <div style="font-size:24px;font-weight:900;color:var(--success)">${summary.normalCount || 0}</div>
+        <div class="text-sm" style="color:var(--success)">Normal</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Nomor Plat</th><th>Sektor Asal</th><th>Tujuan Saat Ini</th><th>Status</th></tr></thead>
+        <tbody>
+          ${trucks.map(t => `<tr>
+            <td class="font-bold td-mono">${t.plateNumber}</td>
+            <td>${t.originalSector?.name || '—'}</td>
+            <td>${t.isRerouted ? t.reroutedSector?.name || '—' : t.originalSector?.name || '—'}</td>
+            <td>${t.isRerouted ? '<span class="badge badge-warning"><span class="badge-dot"></span>Dialihkan</span>' : '<span class="badge badge-success"><span class="badge-dot"></span>Normal</span>'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderDashboardCharts(stats) {
+  // CH4 Daily Line Chart
+  destroyChart('ch4-daily');
+  const ctx1 = document.getElementById('chart-ch4-daily');
+  if (ctx1) {
+    const series = stats.ch4DailySeries || [];
+    state.charts['ch4-daily'] = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
+        datasets: [
+          { label: 'CH4 Rata-rata (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
+          { label: 'CH4 Maksimum (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, fill: false, borderWidth: 2, borderDash: [5,5], pointBackgroundColor: '#CB0525', pointRadius: 3 },
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+    });
+  }
+
+  // Sector Status Donut Chart
+  destroyChart('sector-status');
+  const ctx2 = document.getElementById('chart-sector-status');
+  if (ctx2) {
+    const overview = stats.overview;
+    state.charts['sector-status'] = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Normal', 'Waspada', 'Bahaya'],
+        datasets: [{ data: [overview.normalSectors, overview.warningSectors, overview.dangerSectors], backgroundColor: ['#10B981', '#F59E0B', '#CB0525'], borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 16 } } }, cutout: '68%' }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MONITORING
+// ═══════════════════════════════════════════════════════════
+async function loadMonitoring() {
+  try {
+    const [adminStats, sectors, trucks, sensors] = await Promise.all([
+      api('/telemetry/admin-stats'),
+      api('/sectors'),
+      api('/trucks'),
+      api('/sensors', { params: { limit: 100 } }),
+    ]);
+    const stats = adminStats.data;
+    renderMonitoringKpi(stats, trucks.data, sensors.data);
+    renderMonitoringCharts(stats, sectors.data, trucks.data, sensors.data);
+  } catch (e) {
+    toast('Gagal memuat monitoring: ' + e.message, 'error');
+  }
+}
+
+function renderMonitoringKpi(stats, trucks, sensors) {
+  const kpis = [
+    { label: 'Node Aktif', value: stats.overview.activeNodes, sub: `/ ${stats.overview.totalNodes}`, icon: 'green', iconSvg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>' },
+    { label: 'Node Tidak Aktif', value: stats.overview.inactiveNodes, sub: 'node', icon: 'red', iconSvg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>' },
+    { label: 'Total Truk', value: trucks?.summary?.total || 0, sub: 'armada', icon: 'blue', iconSvg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' },
+    { label: 'Truk Dialihkan', value: trucks?.summary?.reroutedCount || 0, sub: 'truk', icon: 'yellow', iconSvg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><polyline points="12 2 15 5 12 8"/></svg>' },
+  ];
+  document.getElementById('monitoring-kpi-grid').innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-icon ${k.icon}">${k.iconSvg}</div>
+      <div>
+        <div class="kpi-value">${k.value} <span style="font-size:13px;font-weight:600;color:var(--text-muted)">${k.sub}</span></div>
+        <div class="kpi-label">${k.label}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderMonitoringCharts(stats, sectors, trucks, sensors) {
+  // Node status donut
+  destroyChart('node-status');
+  const ctxN = document.getElementById('chart-node-status');
+  if (ctxN) {
+    const activeN = stats.overview.activeNodes, inactiveN = stats.overview.inactiveNodes;
+    state.charts['node-status'] = new Chart(ctxN, {
+      type: 'doughnut',
+      data: { labels: ['Aktif', 'Tidak Aktif'], datasets: [{ data: [activeN, inactiveN], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0, hoverOffset: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 14 } } } }
+    });
+  }
+
+  // Sector capacity bar chart
+  destroyChart('sector-cap');
+  const ctxC = document.getElementById('chart-sector-cap');
+  if (ctxC && sectors?.length) {
+    const sectorList = Array.isArray(sectors) ? sectors : [];
+    state.charts['sector-cap'] = new Chart(ctxC, {
+      type: 'bar',
+      data: {
+        labels: sectorList.map(s => s.name || s.sectorCode),
+        datasets: [{ label: 'Kapasitas (%)', data: sectorList.map(s => s.capacityPercent), backgroundColor: sectorList.map(s => s.capacityPercent >= 90 ? '#CB0525' : s.capacityPercent >= 60 ? '#F59E0B' : '#10B981'), borderRadius: 6 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 }, callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+    });
+  }
+
+  // Truck status donut
+  destroyChart('truck-status');
+  const ctxT = document.getElementById('chart-truck-status');
+  if (ctxT && trucks) {
+    const rerouted = trucks.summary?.reroutedCount || 0, normal = trucks.summary?.normalCount || 0;
+    state.charts['truck-status'] = new Chart(ctxT, {
+      type: 'doughnut',
+      data: { labels: ['Normal', 'Dialihkan'], datasets: [{ data: [normal, rerouted], backgroundColor: ['#10B981', '#F59E0B'], borderWidth: 0, hoverOffset: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 14 } } } }
+    });
+  }
+
+  // CH4 Trend line chart
+  destroyChart('ch4-trend');
+  const ctxTrend = document.getElementById('chart-ch4-trend');
+  if (ctxTrend) {
+    const series = stats.ch4DailySeries || [];
+    state.charts['ch4-trend'] = new Chart(ctxTrend, {
+      type: 'line',
+      data: {
+        labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
+        datasets: [
+          { label: 'Rata-rata CH4 (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
+          { label: 'Maksimum CH4 (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, borderDash: [6,4], pointRadius: 3, pointBackgroundColor: '#CB0525' },
+          { label: 'Ambang Bahaya (1000)', data: series.map(() => 1000), borderColor: 'rgba(203,5,37,0.3)', borderDash: [3,3], borderWidth: 1.5, pointRadius: 0, fill: false },
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+    });
+  }
+
+  // CH4 per sector current
+  destroyChart('ch4-per-sector');
+  const ctxSec = document.getElementById('chart-ch4-per-sector');
+  if (ctxSec && sensors?.nodes) {
+    const nodes = sensors.nodes;
+    state.charts['ch4-per-sector'] = new Chart(ctxSec, {
+      type: 'bar',
+      data: {
+        labels: nodes.map(n => n.nodeCode),
+        datasets: [{ label: 'CH4 (ppm)', data: nodes.map(n => n.latestReading?.ch4Ppm || 0), backgroundColor: nodes.map(n => { const v = n.latestReading?.ch4Ppm || 0; return v >= 1000 ? '#CB0525' : v >= 500 ? '#F59E0B' : '#10B981'; }), borderRadius: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INCIDENTS
+// ═══════════════════════════════════════════════════════════
+async function loadIncidents(page) {
+  if (page) state.incidentsPage = page;
+  const search = document.getElementById('incident-search')?.value || '';
+  const status = document.getElementById('incident-status-filter')?.value || 'all';
+  const sector = document.getElementById('incident-sector-filter')?.value || '';
+  try {
+    const params = { status: status || 'all', page: state.incidentsPage, limit: 10 };
+    if (search) params.search = search;
+    if (sector) params.sectorCode = sector;
+    const res = await api('/sop/incidents', { params });
+    const incidents = res.data?.incidents || [];
+    state.incidentTotal = res.data?.pagination?.totalPages || 1;
+    document.getElementById('incidents-tbody').innerHTML = incidents.length ? incidents.map(i => `
+      <tr>
+        <td>
+          <div style="font-size:13.5px;font-weight:700;color:var(--text-primary)">${i.title}</div>
+          <div class="text-sm text-muted mt-1" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.description || ''}</div>
+        </td>
+        <td>${i.sector ? `<span class="badge badge-info">Sektor ${i.sector.sectorCode}</span>` : '<span class="text-muted text-sm">—</span>'}</td>
+        <td>${statusBadge(i.status)}</td>
+        <td class="td-muted text-sm">${fmtDateTime(i.createdAt)}</td>
+        <td class="td-muted text-sm">${i.resolvedAt ? fmtDateTime(i.resolvedAt) : '—'}</td>
+        <td>
+          <div class="flex gap-2">
+            <button class="btn btn-sm btn-outline" onclick="openUpdateIncidentModal('${i.id}','${i.title.replace(/'/g, "\\\\'")}','${i.status}','${(i.mitigationNotes || '').replace(/'/g, "\\\\'")}')">Update</button>
+          </div>
+        </td>
+      </tr>
+    `).join('') : '<tr><td colspan="6"><div class="empty-state"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>Tidak ada data insiden</p></div></td></tr>';
+    renderPagination('incidents-pagination', state.incidentsPage, state.incidentTotal, 'loadIncidents');
+  } catch (e) {
+    toast('Gagal memuat insiden: ' + e.message, 'error');
+  }
+}
+
+function filterIncidents() { state.incidentsPage = 1; loadIncidents(); }
+
+function openCreateIncidentModal() {
+  state.editingIncidentId = null;
+  document.getElementById('incident-modal-title').textContent = 'Lapor Insiden Baru';
+  document.getElementById('incident-title').value = '';
+  document.getElementById('incident-desc').value = '';
+  document.getElementById('incident-sector').value = '';
+  document.getElementById('incident-status-field').style.display = 'none';
+  document.getElementById('incident-mitigation-field').style.display = 'none';
+  openModal('incident-modal');
+}
+
+function openUpdateIncidentModal(id, title, currentStatus, notes) {
+  state.updatingIncidentId = id;
+  document.getElementById('update-incident-subtitle').textContent = title;
+  document.getElementById('update-incident-status').value = currentStatus;
+  document.getElementById('update-incident-notes').value = notes || '';
+  openModal('update-incident-modal');
+}
+
+async function saveIncident() {
+  const title = document.getElementById('incident-title').value.trim();
+  const description = document.getElementById('incident-desc').value.trim();
+  const sectorCode = document.getElementById('incident-sector').value;
+  if (!title || !description) { toast('Judul dan deskripsi wajib diisi', 'warning'); return; }
+  const btn = document.getElementById('save-incident-btn');
+  btn.disabled = true;
+  try {
+    await api('/sop/incidents', { method: 'POST', body: { title, description, sectorCode: sectorCode || undefined } });
+    closeModal('incident-modal');
+    toast('Insiden berhasil dilaporkan', 'success');
+    loadIncidents();
+  } catch (e) {
+    toast('Gagal menyimpan insiden: ' + e.message, 'error');
+  } finally { btn.disabled = false; }
+}
+
+async function saveUpdateIncident() {
+  const status = document.getElementById('update-incident-status').value;
+  const mitigationNotes = document.getElementById('update-incident-notes').value.trim();
+  const btn = document.getElementById('update-incident-btn');
+  btn.disabled = true;
+  try {
+    await api(`/sop/incidents/${state.updatingIncidentId}`, { method: 'PATCH', body: { status, mitigationNotes } });
+    closeModal('update-incident-modal');
+    toast('Status insiden berhasil diperbarui', 'success');
+    loadIncidents();
+    loadDashboard();
+  } catch (e) {
+    toast('Gagal update insiden: ' + e.message, 'error');
+  } finally { btn.disabled = false; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SOP
+// ═══════════════════════════════════════════════════════════
+async function loadSop() {
+  try {
+    const [tasks, incidents] = await Promise.all([
+      api('/sop/tasks'),
+      api('/sop/incidents', { params: { status: 'all', limit: 5 } }),
+    ]);
+    renderSopTasks(tasks.data);
+    renderSopIncidents(incidents.data?.incidents || []);
+  } catch (e) {
+    toast('Gagal memuat SOP: ' + e.message, 'error');
+  }
+}
+
+function renderSopTasks(data) {
+  const tasks = data?.tasks || [];
+  const completed = data?.completedCount || 0;
+  const total = data?.totalCount || 0;
+  document.getElementById('sop-progress-text').textContent = `${completed} dari ${total} langkah selesai`;
+  document.getElementById('sop-tasks-list').innerHTML = tasks.length ? tasks.map(t => `
+    <div class="task-item">
+      <div class="task-check ${t.isCompleted ? 'done' : ''}" onclick="toggleSopTask('${t.id}', ${t.isCompleted})">
+        ${t.isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+      <div>
+        <div class="task-title ${t.isCompleted ? 'done' : ''}">${t.orderIndex}. ${t.title}</div>
+        <div class="task-meta">${t.isCompleted ? `Selesai: ${fmtDateTime(t.completedAt)}` : 'Belum selesai'}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state"><p>Tidak ada tugas</p></div>';
+}
+
+function renderSopIncidents(incidents) {
+  document.getElementById('sop-incidents-list').innerHTML = incidents.length ? incidents.map(i => `
+    <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13.5px;font-weight:700">${i.title}</div>
+        <div class="text-sm text-muted mt-1">${i.sector?.name || 'Umum'} · ${fmtDate(i.createdAt)}</div>
+      </div>
+      ${statusBadge(i.status)}
+    </div>
+  `).join('') : '<div class="empty-state"><p>Tidak ada riwayat insiden</p></div>';
+}
+
+async function toggleSopTask(id, currentStatus) {
+  try {
+    await api(`/sop/tasks/${id}/toggle`, { method: 'PATCH' });
+    toast(currentStatus ? 'Tugas ditandai belum selesai' : 'Tugas berhasil diselesaikan', 'success');
+    loadSop();
+  } catch (e) {
+    toast('Gagal update tugas: ' + e.message, 'error');
+  }
+}
+
+function openBroadcastModal() { openModal('broadcast-modal'); }
+
+async function sendBroadcast() {
+  const message = document.getElementById('broadcast-message').value.trim();
+  const sectorCode = document.getElementById('broadcast-sector').value;
+  if (!message) { toast('Pesan broadcast tidak boleh kosong', 'warning'); return; }
+  const btn = document.getElementById('broadcast-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Mengirim...';
+  try {
+    await api('/sop/alert-broadcast', { method: 'POST', body: { message, sectorCode: sectorCode || undefined } });
+    closeModal('broadcast-modal');
+    toast('🚨 Broadcast darurat berhasil dikirim!', 'success');
+  } catch (e) {
+    toast('Gagal kirim broadcast: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Kirim Broadcast Darurat';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// REROUTE
+// ═══════════════════════════════════════════════════════════
+async function loadReroute() {
+  try {
+    const [sectorsRes, trucksRes] = await Promise.all([api('/sectors'), api('/trucks')]);
+    state.sectors = sectorsRes.data || [];
+    state.trucks = trucksRes.data?.trucks || [];
+    resetReroute();
+  } catch (e) {
+    toast('Gagal memuat data reroute: ' + e.message, 'error');
+  }
+}
+
+function resetReroute() {
+  state.rerouteStep = 1;
+  state.rerouteFromSector = null;
+  state.rerouteToSector = null;
+  showRerouteStep(1);
+  renderFromSectors();
+}
+
+function showRerouteStep(step) {
+  [1, 2, 3, 4].forEach(i => {
+    const el = document.getElementById(`reroute-step-${i}`);
+    if (el) el.style.display = i === step ? '' : 'none';
+    const indicator = document.getElementById(`step-${i}-indicator`);
+    if (indicator) {
+      indicator.className = 'flow-step-item ' + (i < step ? 'done' : i === step ? 'active' : 'inactive');
+    }
+  });
+}
+
+function renderFromSectors() {
+  document.getElementById('reroute-from-sectors').innerHTML = state.sectors.map(s => `
+    <div class="sector-card ${s.status === 'danger' || s.status === 'locked' ? 'danger-sector' : ''}" onclick="selectFromSector('${s.sectorCode}')">
+      <div class="sector-card-code">Sektor ${s.sectorCode}</div>
+      <div class="sector-card-name">${s.name}</div>
+      <div class="sector-card-stats">
+        ${statusBadge(s.status)}
+        <div class="sector-stat">Kapasitas: <strong>${s.capacityPercent}%</strong></div>
+        <div class="sector-stat">${s.isAcceptingTrucks ? '✓ Menerima truk' : '✗ Penuh'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectFromSector(code) {
+  state.rerouteFromSector = state.sectors.find(s => s.sectorCode === code);
+  state.rerouteStep = 2;
+  showRerouteStep(2);
+  // Render destination sectors (excluding from sector)
+  const toSectors = state.sectors.filter(s => s.sectorCode !== code && s.isAcceptingTrucks);
+  document.getElementById('reroute-to-sectors').innerHTML = toSectors.length ? toSectors.map(s => `
+    <div class="sector-card" onclick="selectToSector('${s.sectorCode}')">
+      <div class="sector-card-code">Sektor ${s.sectorCode}</div>
+      <div class="sector-card-name">${s.name}</div>
+      <div class="sector-card-stats">
+        ${statusBadge(s.status)}
+        <div class="sector-stat">Kapasitas: <strong>${s.capacityPercent}%</strong></div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state"><p>Tidak ada sektor tujuan yang tersedia</p><span>Semua sektor penuh atau tidak menerima truk</span></div>';
+  // Show affected trucks
+  const affectedTrucks = state.trucks.filter(t => t.originalSector?.sectorCode === code);
+  document.getElementById('affected-trucks-tbody').innerHTML = affectedTrucks.length ? affectedTrucks.map(t => `
+    <tr>
+      <td class="font-bold td-mono">${t.plateNumber}</td>
+      <td>${t.originalSector?.name || '—'}</td>
+      <td>${t.isRerouted ? '<span class="badge badge-warning">Sudah Dialihkan</span>' : '<span class="badge badge-success">Normal</span>'}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--text-muted)">Tidak ada truk dari sektor ini</td></tr>';
+}
+
+function selectToSector(code) {
+  state.rerouteToSector = state.sectors.find(s => s.sectorCode === code);
+  state.rerouteStep = 3;
+  showRerouteStep(3);
+  const from = state.rerouteFromSector;
+  const to = state.rerouteToSector;
+  document.getElementById('confirm-from-code').textContent = `Sektor ${from.sectorCode}`;
+  document.getElementById('confirm-from-name').textContent = from.name;
+  document.getElementById('confirm-to-code').textContent = `Sektor ${to.sectorCode}`;
+  document.getElementById('confirm-to-name').textContent = to.name;
+  const affectedCount = state.trucks.filter(t => t.originalSector?.sectorCode === from.sectorCode).length;
+  document.getElementById('confirm-count-text').textContent = `${affectedCount} truk akan dialihkan dari Sektor ${from.sectorCode} ke Sektor ${to.sectorCode}`;
+}
+
+function rerouteBack(toStep) {
+  state.rerouteStep = toStep;
+  showRerouteStep(toStep);
+}
+
+async function executeReroute() {
+  const from = state.rerouteFromSector;
+  const to = state.rerouteToSector;
+  if (!from || !to) return;
+  const btn = document.getElementById('execute-reroute-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Mengeksekusi...';
+  try {
+    const res = await api('/trucks/reroute-bulk', { method: 'PATCH', body: { fromSectorCode: from.sectorCode, toSectorCode: to.sectorCode } });
+    state.rerouteStep = 4;
+    showRerouteStep(4);
+    document.getElementById('reroute-success-msg').textContent = res.data?.message || `Berhasil mengalihkan truk dari Sektor ${from.sectorCode} ke Sektor ${to.sectorCode}`;
+    toast('Pengalihan rute berhasil dieksekusi!', 'success');
+  } catch (e) {
+    toast('Gagal eksekusi pengalihan: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Eksekusi Pengalihan';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// OFFICERS
+// ═══════════════════════════════════════════════════════════
+async function loadOfficers(page) {
+  if (page) state.officersPage = page;
+  const search = document.getElementById('officer-search')?.value || '';
+  try {
+    const res = await api('/officers', { params: { page: state.officersPage, limit: 10, search: search || undefined } });
+    const officers = res.data?.officers || [];
+    state.officerTotal = res.data?.pagination?.totalPages || 1;
+    document.getElementById('officers-tbody').innerHTML = officers.length ? officers.map(o => `
+      <tr>
+        <td>
+          <div class="flex-center gap-2">
+            <div class="user-avatar" style="width:34px;height:34px;font-size:13px">${o.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:700">${o.name}</div>
+              <div class="text-sm text-muted">${o.credentials || ''}</div>
+            </div>
+          </div>
+        </td>
+        <td class="td-mono td-muted text-sm">${o.nip}</td>
+        <td class="text-sm" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.role}</td>
+        <td class="td-muted text-sm">${fmtDate(o.createdAt)}</td>
+        <td class="td-muted text-sm">${o.lastLoginAt ? fmtDateTime(o.lastLoginAt) : '<span style="color:var(--text-muted)">Belum pernah</span>'}</td>
+        <td>
+          <div class="flex gap-2">
+            <button class="btn btn-sm btn-outline" onclick="openOfficerModal('${o.id}','${o.name.replace(/'/g,"\\\\'")}', '${(o.credentials||'').replace(/'/g,"\\\\'")}', '${o.nip}', '${o.role.replace(/'/g,"\\\\'")}')">Edit</button>
+            <button class="btn btn-sm btn-red" onclick="openDeleteModal('${o.id}','${o.name.replace(/'/g,"\\\\'")}')">Hapus</button>
+          </div>
+        </td>
+      </tr>
+    `).join('') : '<tr><td colspan="6"><div class="empty-state"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>Tidak ada petugas ditemukan</p></div></td></tr>';
+    renderPagination('officers-pagination', state.officersPage, state.officerTotal, 'loadOfficers');
+  } catch (e) {
+    toast('Gagal memuat data petugas: ' + e.message, 'error');
+  }
+}
+
+function openOfficerModal(id, name, credentials, nip, role) {
+  state.editingOfficerId = id || null;
+  const isEdit = !!id;
+  document.getElementById('officer-modal-title').textContent = isEdit ? 'Edit Data Petugas' : 'Tambah Petugas Baru';
+  document.getElementById('save-officer-label').textContent = isEdit ? 'Simpan Perubahan' : 'Simpan Petugas';
+  document.getElementById('officer-name').value = name || '';
+  document.getElementById('officer-credentials').value = credentials || '';
+  document.getElementById('officer-nip').value = nip || '';
+  document.getElementById('officer-role').value = role || '';
+  document.getElementById('officer-password').value = '';
+  document.getElementById('officer-password').required = !isEdit;
+  document.getElementById('officer-password-hint').textContent = isEdit ? 'Kosongkan jika tidak ingin mengubah kata sandi' : '';
+  openModal('officer-modal');
+}
+
+function toggleOfficerPw() {
+  const input = document.getElementById('officer-password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+async function saveOfficer() {
+  const name = document.getElementById('officer-name').value.trim();
+  const credentials = document.getElementById('officer-credentials').value.trim();
+  const nip = document.getElementById('officer-nip').value.trim();
+  const role = document.getElementById('officer-role').value.trim();
+  const password = document.getElementById('officer-password').value;
+  if (!name || !nip || !role) { toast('Nama, NIP, dan jabatan wajib diisi', 'warning'); return; }
+  if (!state.editingOfficerId && !password) { toast('Kata sandi wajib diisi untuk petugas baru', 'warning'); return; }
+  const btn = document.getElementById('save-officer-btn');
+  btn.disabled = true;
+  try {
+    if (state.editingOfficerId) {
+      const body = { name, credentials, nip, role };
+      if (password) body.password = password;
+      await api(`/officers/${state.editingOfficerId}`, { method: 'PATCH', body });
+      toast('Data petugas berhasil diperbarui', 'success');
+    } else {
+      await api('/officers', { method: 'POST', body: { name, credentials, nip, role, password } });
+      toast('Petugas baru berhasil dibuat', 'success');
+    }
+    closeModal('officer-modal');
+    loadOfficers();
+  } catch (e) {
+    toast('Gagal menyimpan data petugas: ' + e.message, 'error');
+  } finally { btn.disabled = false; }
+}
+
+function openDeleteModal(id, name) {
+  state.deletingOfficerId = id;
+  document.getElementById('delete-confirm-text').textContent = `Apakah Anda yakin ingin menghapus petugas "${name}"? Data audit log terkait akan ikut terhapus.`;
+  openModal('delete-modal');
+}
+
+async function confirmDelete() {
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.disabled = true;
+  try {
+    await api(`/officers/${state.deletingOfficerId}`, { method: 'DELETE' });
+    closeModal('delete-modal');
+    toast('Petugas berhasil dihapus', 'success');
+    loadOfficers();
+  } catch (e) {
+    toast('Gagal menghapus petugas: ' + e.message, 'error');
+  } finally { btn.disabled = false; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUDIT LOG
+// ═══════════════════════════════════════════════════════════
+async function loadAuditLog(page) {
+  if (page) state.auditPage = page;
+  try {
+    const res = await api('/officers/admin/audit-logs', { params: { page: state.auditPage, limit: 15 } });
+    const logs = res.data?.logs || [];
+    const totalPages = res.data?.pagination?.totalPages || 1;
+    document.getElementById('audit-tbody').innerHTML = logs.length ? logs.map(l => `
+      <tr>
+        <td>
+          <div style="font-size:13.5px;font-weight:700">${l.officer?.name || '—'}</div>
+        </td>
+        <td class="td-mono td-muted text-sm">${l.officer?.nip || '—'}</td>
+        <td class="text-sm">${l.deviceName}</td>
+        <td class="td-mono text-sm td-muted">${l.ipAddress}</td>
+        <td class="text-sm td-muted">${l.locationNote || '—'}</td>
+        <td>${l.isActiveSession ? '<span class="badge badge-success"><span class="badge-dot"></span>Aktif</span>' : '<span class="badge badge-neutral"><span class="badge-dot"></span>Selesai</span>'}</td>
+        <td class="td-muted text-sm">${fmtDateTime(l.createdAt)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="7"><div class="empty-state"><p>Tidak ada audit log</p></div></td></tr>';
+    renderPagination('audit-pagination', state.auditPage, totalPages, 'loadAuditLog');
+  } catch (e) {
+    toast('Gagal memuat audit log: ' + e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>
+
