@@ -79,4 +79,62 @@ export class TelemetryService {
       },
     };
   }
+
+  async getAdminStats() {
+    const [sectors, allNodes, allTrucks] = await Promise.all([
+      this.sectorRepo.find(),
+      this.nodeRepo.find(),
+      this.truckRepo.find(),
+    ]);
+
+    const activeNodes = allNodes.filter((n) => n.isActive).length;
+    const reroutedTrucks = allTrucks.filter((t) => t.isRerouted).length;
+    const dangerSectors = sectors.filter((s) => s.status === 'danger' || s.status === 'locked').length;
+    const warningSectors = sectors.filter((s) => s.status === 'warning').length;
+
+    // CH4 series harian (last 7 days — aggregate per day)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+    const dailySeries = await this.readingRepo
+      .createQueryBuilder('r')
+      .select("DATE_TRUNC('day', r.recorded_at)", 'day')
+      .addSelect('AVG(r.ch4_ppm)', 'avg_ch4')
+      .addSelect('MAX(r.ch4_ppm)', 'max_ch4')
+      .where('r.recorded_at >= :start', { start: sevenDaysAgo })
+      .groupBy("DATE_TRUNC('day', r.recorded_at)")
+      .orderBy("DATE_TRUNC('day', r.recorded_at)", 'ASC')
+      .getRawMany();
+
+    // Sector status breakdown
+    const sectorStatusBreakdown = sectors.map((s) => ({
+      sectorCode: s.sectorCode,
+      name: s.name,
+      status: s.status,
+      capacityPercent: s.capacityPercent,
+      isAcceptingTrucks: s.isAcceptingTrucks,
+    }));
+
+    return {
+      success: true,
+      data: {
+        overview: {
+          totalSectors: sectors.length,
+          dangerSectors,
+          warningSectors,
+          normalSectors: sectors.length - dangerSectors - warningSectors,
+          totalNodes: allNodes.length,
+          activeNodes,
+          inactiveNodes: allNodes.length - activeNodes,
+          totalTrucks: allTrucks.length,
+          reroutedTrucks,
+          normalTrucks: allTrucks.length - reroutedTrucks,
+        },
+        sectorStatusBreakdown,
+        ch4DailySeries: dailySeries.map((d) => ({
+          day: d.day,
+          avgCh4: d.avg_ch4 ? parseFloat(d.avg_ch4).toFixed(1) : '0',
+          maxCh4: d.max_ch4 ? parseFloat(d.max_ch4).toFixed(1) : '0',
+        })),
+      },
+    };
+  }
 }

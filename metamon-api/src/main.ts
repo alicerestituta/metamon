@@ -12,9 +12,16 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
 
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+    'http://localhost:3000',
+    'http://localhost:3002',
+  ];
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    origin: (origin, callback) => {
+      // Izinkan semua origin (termasuk akses file:// yang memiliki origin 'null')
+      callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
 
