@@ -64,7 +64,7 @@ export class SopService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const [incidents, total] = await qb
-      .orderBy('i.created_at', 'DESC')
+      .orderBy('i.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();

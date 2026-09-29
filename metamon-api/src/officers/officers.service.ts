@@ -103,7 +103,7 @@ export class OfficersService {
     }
 
     const [officers, total] = await qb
-      .orderBy('o.created_at', 'DESC')
+      .orderBy('o.createdAt', 'DESC')
       .skip(skip)
       .take(limit)
       .getManyAndCount();
@@ -215,7 +215,7 @@ export class OfficersService {
     const [logs, total] = await this.auditRepo
       .createQueryBuilder('a')
       .leftJoinAndSelect('a.officer', 'o')
-      .orderBy('a.created_at', 'DESC')
+      .orderBy('a.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
