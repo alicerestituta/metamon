@@ -1935,23 +1935,51 @@ function renderTruckOverview(truckData) {
   `;
 }
 
+function showChartEmpty(canvasId, message) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const wrapper = canvas.parentElement;
+  canvas.style.display = 'none';
+  // Remove existing empty state if any
+  const existing = wrapper.querySelector('.chart-empty-state');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'chart-empty-state';
+  el.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:160px;color:var(--text-muted);gap:8px;';
+  el.innerHTML = `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg><span style="font-size:13px;font-weight:600">${message}</span>`;
+  wrapper.appendChild(el);
+}
+function restoreChart(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const wrapper = canvas.parentElement;
+  canvas.style.display = '';
+  const existing = wrapper.querySelector('.chart-empty-state');
+  if (existing) existing.remove();
+}
+
 function renderDashboardCharts(stats) {
   // CH4 Daily Line Chart
   destroyChart('ch4-daily');
   const ctx1 = document.getElementById('chart-ch4-daily');
   if (ctx1) {
     const series = stats.ch4DailySeries || [];
-    state.charts['ch4-daily'] = new Chart(ctx1, {
-      type: 'line',
-      data: {
-        labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
-        datasets: [
-          { label: 'CH4 Rata-rata (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
-          { label: 'CH4 Maksimum (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, fill: false, borderWidth: 2, borderDash: [5,5], pointBackgroundColor: '#CB0525', pointRadius: 3 },
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
-    });
+    if (series.length === 0) {
+      showChartEmpty('chart-ch4-daily', 'Belum ada data historis CH4');
+    } else {
+      restoreChart('chart-ch4-daily');
+      state.charts['ch4-daily'] = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
+          datasets: [
+            { label: 'CH4 Rata-rata (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
+            { label: 'CH4 Maksimum (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, fill: false, borderWidth: 2, borderDash: [5,5], pointBackgroundColor: '#CB0525', pointRadius: 3 },
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+      });
+    }
   }
 
   // Sector Status Donut Chart
@@ -1959,14 +1987,20 @@ function renderDashboardCharts(stats) {
   const ctx2 = document.getElementById('chart-sector-status');
   if (ctx2) {
     const overview = stats.overview;
-    state.charts['sector-status'] = new Chart(ctx2, {
-      type: 'doughnut',
-      data: {
-        labels: ['Normal', 'Waspada', 'Bahaya'],
-        datasets: [{ data: [overview.normalSectors, overview.warningSectors, overview.dangerSectors], backgroundColor: ['#10B981', '#F59E0B', '#CB0525'], borderWidth: 0, hoverOffset: 6 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 16 } } }, cutout: '68%' }
-    });
+    const total = (overview.normalSectors || 0) + (overview.warningSectors || 0) + (overview.dangerSectors || 0);
+    if (total === 0) {
+      showChartEmpty('chart-sector-status', 'Belum ada data sektor');
+    } else {
+      restoreChart('chart-sector-status');
+      state.charts['sector-status'] = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['Normal', 'Waspada', 'Bahaya'],
+          datasets: [{ data: [overview.normalSectors, overview.warningSectors, overview.dangerSectors], backgroundColor: ['#10B981', '#F59E0B', '#CB0525'], borderWidth: 0, hoverOffset: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 16 } } }, cutout: '68%' }
+      });
+    }
   }
 }
 
@@ -2012,39 +2046,56 @@ function renderMonitoringCharts(stats, sectors, trucks, sensors) {
   destroyChart('node-status');
   const ctxN = document.getElementById('chart-node-status');
   if (ctxN) {
-    const activeN = stats.overview.activeNodes, inactiveN = stats.overview.inactiveNodes;
-    state.charts['node-status'] = new Chart(ctxN, {
-      type: 'doughnut',
-      data: { labels: ['Aktif', 'Tidak Aktif'], datasets: [{ data: [activeN, inactiveN], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0, hoverOffset: 6 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 14 } } } }
-    });
+    const activeN = stats.overview.activeNodes || 0;
+    const inactiveN = stats.overview.inactiveNodes || 0;
+    if (activeN + inactiveN === 0) {
+      showChartEmpty('chart-node-status', 'Belum ada node terdaftar');
+    } else {
+      restoreChart('chart-node-status');
+      state.charts['node-status'] = new Chart(ctxN, {
+        type: 'doughnut',
+        data: { labels: ['Aktif', 'Tidak Aktif'], datasets: [{ data: [activeN, inactiveN], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 14 } } } }
+      });
+    }
   }
 
   // Sector capacity bar chart
   destroyChart('sector-cap');
   const ctxC = document.getElementById('chart-sector-cap');
-  if (ctxC && sectors?.length) {
-    const sectorList = Array.isArray(sectors) ? sectors : [];
-    state.charts['sector-cap'] = new Chart(ctxC, {
-      type: 'bar',
-      data: {
-        labels: sectorList.map(s => s.name || s.sectorCode),
-        datasets: [{ label: 'Kapasitas (%)', data: sectorList.map(s => s.capacityPercent), backgroundColor: sectorList.map(s => s.capacityPercent >= 90 ? '#CB0525' : s.capacityPercent >= 60 ? '#F59E0B' : '#10B981'), borderRadius: 6 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 }, callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
-    });
+  const sectorList = Array.isArray(sectors) ? sectors : (sectors?.data || []);
+  if (ctxC) {
+    if (!sectorList.length) {
+      showChartEmpty('chart-sector-cap', 'Belum ada data sektor');
+    } else {
+      restoreChart('chart-sector-cap');
+      state.charts['sector-cap'] = new Chart(ctxC, {
+        type: 'bar',
+        data: {
+          labels: sectorList.map(s => s.name || s.sectorCode),
+          datasets: [{ label: 'Kapasitas (%)', data: sectorList.map(s => s.capacityPercent || 0), backgroundColor: sectorList.map(s => (s.capacityPercent || 0) >= 90 ? '#CB0525' : (s.capacityPercent || 0) >= 60 ? '#F59E0B' : '#10B981'), borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100, beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 }, callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+      });
+    }
   }
 
   // Truck status donut
   destroyChart('truck-status');
   const ctxT = document.getElementById('chart-truck-status');
-  if (ctxT && trucks) {
-    const rerouted = trucks.summary?.reroutedCount || 0, normal = trucks.summary?.normalCount || 0;
-    state.charts['truck-status'] = new Chart(ctxT, {
-      type: 'doughnut',
-      data: { labels: ['Normal', 'Dialihkan'], datasets: [{ data: [normal, rerouted], backgroundColor: ['#10B981', '#F59E0B'], borderWidth: 0, hoverOffset: 6 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 14 } } } }
-    });
+  if (ctxT) {
+    const rerouted = trucks?.summary?.reroutedCount || 0;
+    const normal = trucks?.summary?.normalCount || 0;
+    if (rerouted + normal === 0) {
+      showChartEmpty('chart-truck-status', 'Belum ada data truk');
+    } else {
+      restoreChart('chart-truck-status');
+      state.charts['truck-status'] = new Chart(ctxT, {
+        type: 'doughnut',
+        data: { labels: ['Normal', 'Dialihkan'], datasets: [{ data: [normal, rerouted], backgroundColor: ['#10B981', '#F59E0B'], borderWidth: 0, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '700', size: 12 }, padding: 14 } } } }
+      });
+    }
   }
 
   // CH4 Trend line chart
@@ -2052,33 +2103,44 @@ function renderMonitoringCharts(stats, sectors, trucks, sensors) {
   const ctxTrend = document.getElementById('chart-ch4-trend');
   if (ctxTrend) {
     const series = stats.ch4DailySeries || [];
-    state.charts['ch4-trend'] = new Chart(ctxTrend, {
-      type: 'line',
-      data: {
-        labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
-        datasets: [
-          { label: 'Rata-rata CH4 (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
-          { label: 'Maksimum CH4 (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, borderDash: [6,4], pointRadius: 3, pointBackgroundColor: '#CB0525' },
-          { label: 'Ambang Bahaya (1000)', data: series.map(() => 1000), borderColor: 'rgba(203,5,37,0.3)', borderDash: [3,3], borderWidth: 1.5, pointRadius: 0, fill: false },
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
-    });
+    if (series.length === 0) {
+      showChartEmpty('chart-ch4-trend', 'Belum ada data tren CH4 (7 hari terakhir)');
+    } else {
+      restoreChart('chart-ch4-trend');
+      state.charts['ch4-trend'] = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
+          datasets: [
+            { label: 'Rata-rata CH4 (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
+            { label: 'Maksimum CH4 (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, borderDash: [6,4], pointRadius: 3, pointBackgroundColor: '#CB0525' },
+            { label: 'Ambang Bahaya (1000)', data: series.map(() => 1000), borderColor: 'rgba(203,5,37,0.3)', borderDash: [3,3], borderWidth: 1.5, pointRadius: 0, fill: false },
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+      });
+    }
   }
 
-  // CH4 per sector current
+  // CH4 per node (sensor) current readings
   destroyChart('ch4-per-sector');
   const ctxSec = document.getElementById('chart-ch4-per-sector');
-  if (ctxSec && sensors?.nodes) {
-    const nodes = sensors.nodes;
-    state.charts['ch4-per-sector'] = new Chart(ctxSec, {
-      type: 'bar',
-      data: {
-        labels: nodes.map(n => n.nodeCode),
-        datasets: [{ label: 'CH4 (ppm)', data: nodes.map(n => n.latestReading?.ch4Ppm || 0), backgroundColor: nodes.map(n => { const v = n.latestReading?.ch4Ppm || 0; return v >= 1000 ? '#CB0525' : v >= 500 ? '#F59E0B' : '#10B981'; }), borderRadius: 4 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
-    });
+  if (ctxSec) {
+    // API /sensors returns { data: { nodes: [...] } }, admin receives sensors = res.data
+    const nodes = sensors?.nodes || [];
+    if (!nodes.length) {
+      showChartEmpty('chart-ch4-per-sector', 'Belum ada data pembacaan sensor');
+    } else {
+      restoreChart('chart-ch4-per-sector');
+      state.charts['ch4-per-sector'] = new Chart(ctxSec, {
+        type: 'bar',
+        data: {
+          labels: nodes.map(n => n.nodeCode),
+          datasets: [{ label: 'CH4 (ppm)', data: nodes.map(n => n.latestReading?.ch4Ppm || 0), backgroundColor: nodes.map(n => { const v = n.latestReading?.ch4Ppm || 0; return v >= 1000 ? '#CB0525' : v >= 500 ? '#F59E0B' : '#10B981'; }), borderRadius: 4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
+      });
+    }
   }
 }
 
