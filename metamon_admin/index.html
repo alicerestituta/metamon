@@ -1599,6 +1599,7 @@ async function api(path, options = {}) {
 function handleUnauthorized() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem('metamon_admin_page');
   state.token = null;
   location.reload();
 }
@@ -1675,6 +1676,7 @@ async function doLogout() {
   try { await api('/auth/logout', { method: 'POST' }); } catch {}
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem('metamon_admin_page');
   location.reload();
 }
 
@@ -1683,7 +1685,8 @@ async function doLogout() {
 // ═══════════════════════════════════════════════════════════
 function initApp() {
   updateSidebarUser();
-  navigate('dashboard');
+  const savedPage = localStorage.getItem('metamon_admin_page') || 'dashboard';
+  navigate(savedPage);
 }
 
 function updateSidebarUser() {
@@ -1716,6 +1719,7 @@ const PAGE_TITLES = {
 
 function navigate(page) {
   state.currentPage = page;
+  localStorage.setItem('metamon_admin_page', page);
   // Update nav items
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.page === page);
