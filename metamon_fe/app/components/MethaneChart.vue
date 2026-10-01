@@ -252,8 +252,8 @@ async function fetchLive() {
 
       // Append new point to series (rolling 60-point window)
       const now = new Date();
-      const label = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      series.value = [...series.value.slice(-59), { time: label, ch4Ppm: avg }];
+      const label = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      series.value = [...series.value.slice(-19), { time: label, ch4Ppm: avg }];
       liveStatus.value = 'live';
     }
   } catch {

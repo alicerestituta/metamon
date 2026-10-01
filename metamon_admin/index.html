@@ -2127,87 +2127,84 @@ async function initRealtimeChart() {
 
   if (state.liveSimInterval) {
     clearInterval(state.liveSimInterval);
+    state.liveSimInterval = null;
   }
 
-  try {
-    const res = await api('/readings/ch4-series');
-    let series = res.data?.series || [];
-    
-    if (series.length === 0) {
-      showChartEmpty('chart-ch4-trend', 'Memuat data simulasi realtime...');
+  restoreChart('chart-ch4-trend');
+
+  // Mulai dengan series kosong — langsung isi dari polling
+  let series = [];
+
+  state.charts['ch4-trend'] = new Chart(ctxTrend, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'CH4 Real-time (ppm)',
+          data: [],
+          borderColor: '#057602',
+          backgroundColor: 'rgba(5,118,2,0.08)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2.5,
+          pointBackgroundColor: '#057602',
+          pointRadius: 3
+        },
+        {
+          label: 'Ambang Bahaya (1000)',
+          data: [],
+          borderColor: 'rgba(203,5,37,0.5)',
+          borderDash: [6,4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { maxTicksLimit: 8, font: { family: 'Nunito Sans', size: 11 } } },
+        y: { beginAtZero: true, max: 2000, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }
+      }
+    }
+  });
+
+  // Polling tiap 5 detik — identik dengan web petugas
+  const pollLive = async () => {
+    if (state.currentPage !== 'monitoring') {
+      clearInterval(state.liveSimInterval);
+      state.liveSimInterval = null;
       return;
     }
-    
-    restoreChart('chart-ch4-trend');
-    
-    state.charts['ch4-trend'] = new Chart(ctxTrend, {
-      type: 'line',
-      data: {
-        labels: series.map(d => d.time),
-        datasets: [
-          {
-            label: 'CH4 Real-time (ppm)',
-            data: series.map(d => parseFloat(d.ch4Ppm)),
-            borderColor: '#057602',
-            backgroundColor: 'rgba(5,118,2,0.08)',
-            tension: 0.4,
-            fill: true,
-            borderWidth: 2.5,
-            pointBackgroundColor: '#057602',
-            pointRadius: 0
-          },
-          {
-            label: 'Ambang Bahaya (1000)',
-            data: series.map(() => 1000),
-            borderColor: 'rgba(203,5,37,0.3)',
-            borderDash: [3,3],
-            borderWidth: 1.5,
-            pointRadius: 0,
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 0 },
-        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } },
-        scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { maxTicksLimit: 10, font: { family: 'Nunito Sans', size: 11 } } },
-          y: { beginAtZero: true, max: 2000, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }
+    try {
+      const live = await api('/readings/simulate');
+      if (live.data) {
+        const now = new Date();
+        const label = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        const avg = live.data.avgCh4Ppm;
+        // Rolling window 20 titik — identik dengan web petugas
+        series = [...series.slice(-19), { time: label, ch4Ppm: avg }];
+        const chart = state.charts['ch4-trend'];
+        if (chart) {
+          chart.data.labels = series.map(d => d.time);
+          chart.data.datasets[0].data = series.map(d => parseFloat(d.ch4Ppm));
+          chart.data.datasets[0].borderColor = avg >= 1000 ? '#CB0525' : '#057602';
+          chart.data.datasets[0].backgroundColor = avg >= 1000 ? 'rgba(203,5,37,0.08)' : 'rgba(5,118,2,0.08)';
+          chart.data.datasets[1].data = series.map(() => 1000);
+          chart.update();
         }
       }
-    });
+    } catch(e) {}
+  };
 
-    state.liveSimInterval = setInterval(async () => {
-      if (state.currentPage !== 'monitoring') {
-        clearInterval(state.liveSimInterval);
-        return;
-      }
-      try {
-        const live = await api('/readings/simulate');
-        if (live.data) {
-          const now = new Date();
-          const label = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-          const avg = live.data.avgCh4Ppm;
-          
-          series.push({ time: label, ch4Ppm: avg });
-          if (series.length > 60) series.shift();
-          
-          const chart = state.charts['ch4-trend'];
-          if (chart) {
-            chart.data.labels = series.map(d => d.time);
-            chart.data.datasets[0].data = series.map(d => parseFloat(d.ch4Ppm));
-            chart.data.datasets[0].borderColor = avg >= 1000 ? '#CB0525' : '#057602';
-            chart.data.datasets[1].data = series.map(() => 1000);
-            chart.update();
-          }
-        }
-      } catch(e) {}
-    }, 5000);
-  } catch(e) {
-    showChartEmpty('chart-ch4-trend', 'Gagal memuat data realtime');
-  }
+  // Panggil sekali langsung, lalu tiap 5 detik
+  await pollLive();
+  state.liveSimInterval = setInterval(pollLive, 5000);
 }
 
 // ═══════════════════════════════════════════════════════════
