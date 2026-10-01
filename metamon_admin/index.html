@@ -962,8 +962,11 @@
           <div class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Tren CH4 Harian (7 Hari)</div>
-                <div class="card-subtitle">Rata-rata konsentrasi metana per hari (ppm)</div>
+                <div class="card-title">Grafik CH4 Real-time</div>
+                <div class="card-subtitle" id="dashboard-chart-status" style="display:flex;align-items:center;gap:6px">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;animation:pulse 1.5s infinite"></span>
+                  <span>Live — diperbarui tiap 5 detik</span>
+                </div>
               </div>
             </div>
             <div class="card-body">
@@ -1570,6 +1573,7 @@ let state = {
   // Admin stats cache
   adminStats: null,
   dashboardData: null,
+  dashboardInterval: null,
 };
 
 try {
@@ -1832,6 +1836,28 @@ async function loadDashboard() {
     renderRecentIncidents(incidents.data?.incidents || []);
     renderTruckOverview(trucks.data);
     renderDashboardCharts(adminStats.data);
+
+    // Auto-refresh KPI + grafik tiap 5 detik
+    if (state.dashboardInterval) {
+      clearInterval(state.dashboardInterval);
+      state.dashboardInterval = null;
+    }
+    state.dashboardInterval = setInterval(async () => {
+      if (state.currentPage !== 'dashboard') {
+        clearInterval(state.dashboardInterval);
+        state.dashboardInterval = null;
+        return;
+      }
+      try {
+        const [tel, ast, tr] = await Promise.all([
+          api('/telemetry/dashboard'),
+          api('/telemetry/admin-stats'),
+          api('/trucks'),
+        ]);
+        renderKpiGrid(tel.data, ast.data, tr.data);
+        renderSectorStatusList(ast.data.sectorStatusBreakdown);
+      } catch(e) {}
+    }, 5000);
   } catch (e) {
     toast('Gagal memuat dashboard: ' + e.message, 'error');
   }
@@ -1956,30 +1982,7 @@ function restoreChart(canvasId) {
 }
 
 function renderDashboardCharts(stats) {
-  // CH4 Daily Line Chart
-  destroyChart('ch4-daily');
-  const ctx1 = document.getElementById('chart-ch4-daily');
-  if (ctx1) {
-    const series = stats.ch4DailySeries || [];
-    if (series.length === 0) {
-      showChartEmpty('chart-ch4-daily', 'Belum ada data historis CH4');
-    } else {
-      restoreChart('chart-ch4-daily');
-      state.charts['ch4-daily'] = new Chart(ctx1, {
-        type: 'line',
-        data: {
-          labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
-          datasets: [
-            { label: 'CH4 Rata-rata (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
-            { label: 'CH4 Maksimum (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, fill: false, borderWidth: 2, borderDash: [5,5], pointBackgroundColor: '#CB0525', pointRadius: 3 },
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
-      });
-    }
-  }
-
-  // Sector Status Donut Chart
+  // Sector Status Donut Chart (tetap statis)
   destroyChart('sector-status');
   const ctx2 = document.getElementById('chart-sector-status');
   if (ctx2) {
@@ -1999,6 +2002,97 @@ function renderDashboardCharts(stats) {
       });
     }
   }
+
+  // Grafik CH4 Realtime di dashboard — identik dengan web petugas
+  initDashboardRealtimeChart();
+}
+
+async function initDashboardRealtimeChart() {
+  destroyChart('ch4-daily');
+  const ctx = document.getElementById('chart-ch4-daily');
+  if (!ctx) return;
+
+  if (state.chartDashInterval) {
+    clearInterval(state.chartDashInterval);
+    state.chartDashInterval = null;
+  }
+
+  restoreChart('chart-ch4-daily');
+
+  let series = [];
+
+  state.charts['ch4-daily'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'CH4 (ppm)',
+          data: [],
+          borderColor: '#057602',
+          backgroundColor: 'rgba(5,118,2,0.08)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2.5,
+          pointBackgroundColor: '#057602',
+          pointRadius: 3,
+          pointHoverRadius: 5
+        },
+        {
+          label: 'Batas Bahaya (1.000 ppm)',
+          data: [],
+          borderColor: 'rgba(203,5,37,0.6)',
+          borderDash: [6, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 }, boxWidth: 14 } },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { maxTicksLimit: 8, font: { family: 'Nunito Sans', size: 10 } } },
+        y: { beginAtZero: true, max: 2000, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }
+      }
+    }
+  });
+
+  const pollDashboard = async () => {
+    if (state.currentPage !== 'dashboard') {
+      clearInterval(state.chartDashInterval);
+      state.chartDashInterval = null;
+      return;
+    }
+    try {
+      const live = await api('/readings/simulate');
+      if (live.data) {
+        const now = new Date();
+        const label = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        const avg = live.data.avgCh4Ppm;
+        // Rolling window 20 titik
+        series = [...series.slice(-19), { time: label, ch4Ppm: avg }];
+        const chart = state.charts['ch4-daily'];
+        if (chart) {
+          chart.data.labels = series.map(d => d.time);
+          chart.data.datasets[0].data = series.map(d => parseFloat(d.ch4Ppm));
+          chart.data.datasets[0].borderColor = avg >= 1000 ? '#CB0525' : '#057602';
+          chart.data.datasets[0].backgroundColor = avg >= 1000 ? 'rgba(203,5,37,0.08)' : 'rgba(5,118,2,0.08)';
+          chart.data.datasets[1].data = series.map(() => 1000);
+          chart.update();
+        }
+      }
+    } catch(e) {}
+  };
+
+  await pollDashboard();
+  state.chartDashInterval = setInterval(pollDashboard, 5000);
 }
 
 // ═══════════════════════════════════════════════════════════
