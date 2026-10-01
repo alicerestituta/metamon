@@ -1039,8 +1039,8 @@
         <div class="card mb-6">
           <div class="card-header">
             <div>
-              <div class="card-title">Tren CH4 — 7 Hari Terakhir</div>
-              <div class="card-subtitle">CH4 rata-rata & maksimum harian (ppm)</div>
+              <div class="card-title">Grafik CH4 Real-time</div>
+              <div class="card-subtitle">Simulasi telemetri (ppm) — Diperbarui tiap 5 detik</div>
             </div>
           </div>
           <div class="card-body">
@@ -2102,29 +2102,8 @@ function renderMonitoringCharts(stats, sectors, trucks, sensors) {
     }
   }
 
-  // CH4 Trend line chart
-  destroyChart('ch4-trend');
-  const ctxTrend = document.getElementById('chart-ch4-trend');
-  if (ctxTrend) {
-    const series = stats.ch4DailySeries || [];
-    if (series.length === 0) {
-      showChartEmpty('chart-ch4-trend', 'Belum ada data tren CH4 (7 hari terakhir)');
-    } else {
-      restoreChart('chart-ch4-trend');
-      state.charts['ch4-trend'] = new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-          labels: series.map(d => new Date(d.day).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
-          datasets: [
-            { label: 'Rata-rata CH4 (ppm)', data: series.map(d => parseFloat(d.avgCh4)), borderColor: '#057602', backgroundColor: 'rgba(5,118,2,0.08)', tension: 0.4, fill: true, borderWidth: 2.5, pointBackgroundColor: '#057602', pointRadius: 4 },
-            { label: 'Maksimum CH4 (ppm)', data: series.map(d => parseFloat(d.maxCh4)), borderColor: '#CB0525', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, borderDash: [6,4], pointRadius: 3, pointBackgroundColor: '#CB0525' },
-            { label: 'Ambang Bahaya (1000)', data: series.map(() => 1000), borderColor: 'rgba(203,5,37,0.3)', borderDash: [3,3], borderWidth: 1.5, pointRadius: 0, fill: false },
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
-      });
-    }
-  }
+  // CH4 Real-time chart
+  initRealtimeChart();
 
   // CH4 per node (sensor) current readings
   destroyChart('ch4-per-sector');
@@ -2145,6 +2124,96 @@ function renderMonitoringCharts(stats, sectors, trucks, sensors) {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } } } }
       });
     }
+  }
+}
+
+async function initRealtimeChart() {
+  destroyChart('ch4-trend');
+  const ctxTrend = document.getElementById('chart-ch4-trend');
+  if (!ctxTrend) return;
+
+  if (state.liveSimInterval) {
+    clearInterval(state.liveSimInterval);
+  }
+
+  try {
+    const res = await api('/readings/ch4-series');
+    let series = res.data?.series || [];
+    
+    if (series.length === 0) {
+      showChartEmpty('chart-ch4-trend', 'Memuat data simulasi realtime...');
+      return;
+    }
+    
+    restoreChart('chart-ch4-trend');
+    
+    state.charts['ch4-trend'] = new Chart(ctxTrend, {
+      type: 'line',
+      data: {
+        labels: series.map(d => d.time),
+        datasets: [
+          {
+            label: 'CH4 Real-time (ppm)',
+            data: series.map(d => parseFloat(d.ch4Ppm)),
+            borderColor: '#057602',
+            backgroundColor: 'rgba(5,118,2,0.08)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 2.5,
+            pointBackgroundColor: '#057602',
+            pointRadius: 0
+          },
+          {
+            label: 'Ambang Bahaya (1000)',
+            data: series.map(() => 1000),
+            borderColor: 'rgba(203,5,37,0.3)',
+            borderDash: [3,3],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 0 },
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Nunito Sans', weight: '600', size: 12 } } } },
+        scales: {
+          x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { maxTicksLimit: 10, font: { family: 'Nunito Sans', size: 11 } } },
+          y: { beginAtZero: true, max: 2000, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Nunito Sans', size: 11 } } }
+        }
+      }
+    });
+
+    state.liveSimInterval = setInterval(async () => {
+      if (state.currentPage !== 'dashboard') {
+        clearInterval(state.liveSimInterval);
+        return;
+      }
+      try {
+        const live = await api('/readings/simulate');
+        if (live.data) {
+          const now = new Date();
+          const label = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          const avg = live.data.avgCh4Ppm;
+          
+          series.push({ time: label, ch4Ppm: avg });
+          if (series.length > 60) series.shift();
+          
+          const chart = state.charts['ch4-trend'];
+          if (chart) {
+            chart.data.labels = series.map(d => d.time);
+            chart.data.datasets[0].data = series.map(d => parseFloat(d.ch4Ppm));
+            chart.data.datasets[0].borderColor = avg >= 1000 ? '#CB0525' : '#057602';
+            chart.data.datasets[1].data = series.map(() => 1000);
+            chart.update();
+          }
+        }
+      } catch(e) {}
+    }, 5000);
+  } catch(e) {
+    showChartEmpty('chart-ch4-trend', 'Gagal memuat data realtime');
   }
 }
 
