@@ -95,4 +95,33 @@ export class TrucksService {
     await this.truckRepo.update(id, { isRerouted: true, reroutedSectorId: toSector.id });
     return { success: true, message: `Rute armada berhasil dipindahkan ke ${toSector.name}` };
   }
+
+  async revertBulk(sectorCode: string) {
+    const fromSector = await this.sectorRepo.findOne({ where: { sectorCode } });
+    if (!fromSector) throw new NotFoundException('Sektor tidak ditemukan');
+
+    const trucks = await this.truckRepo.find({ where: { originalSectorId: fromSector.id, isRerouted: true } });
+    
+    await Promise.all(
+      trucks.map((t) =>
+        this.truckRepo.update(t.id, { isRerouted: false, reroutedSectorId: null }),
+      ),
+    );
+
+    return {
+      success: true,
+      data: {
+        revertedCount: trucks.length,
+        message: `Semua truk dialihkan dari ${fromSector.name} telah dikembalikan ke rute awal`,
+      },
+    };
+  }
+
+  async revertSingle(id: string) {
+    const truck = await this.truckRepo.findOne({ where: { id } });
+    if (!truck) throw new NotFoundException('Truk tidak ditemukan');
+
+    await this.truckRepo.update(id, { isRerouted: false, reroutedSectorId: null });
+    return { success: true, message: `Truk ${truck.plateNumber} telah dikembalikan ke rute awal` };
+  }
 }

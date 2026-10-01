@@ -30,4 +30,16 @@ export class TrucksController {
   rerouteSingle(@Param('id') id: string, @Body() dto: RerouteSingleDto) {
     return this.trucksService.rerouteSingle(id, dto);
   }
+
+  @ApiOperation({ summary: 'Kembalikan semua pengalihan truk dari suatu sektor' })
+  @Patch('revert-bulk/:sectorCode')
+  revertBulk(@Param('sectorCode') sectorCode: string) {
+    return this.trucksService.revertBulk(sectorCode);
+  }
+
+  @ApiOperation({ summary: 'Kembalikan satu truk ke rute asalnya' })
+  @Patch(':id/revert')
+  revertSingle(@Param('id') id: string) {
+    return this.trucksService.revertSingle(id);
+  }
 }
