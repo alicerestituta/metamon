@@ -58,6 +58,16 @@ export function useApi() {
     const res = await fetch(url, { ...fetchOptions, headers, cache: 'no-store' });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        token.value = null;
+        user.value = null;
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+        }
+        toast.error('Sesi Anda telah berakhir. Silakan masuk kembali.');
+        throw new Error('Unauthorized');
+      }
       const err = await res.json().catch(() => ({}));
       const msg = err?.message ?? `Terjadi kesalahan (HTTP ${res.status})`;
       toast.error(msg);
