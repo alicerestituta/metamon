@@ -1697,17 +1697,10 @@ function updateSidebarUser() {
   document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
 }
 
-// Auto-start if already logged in
-if (state.token) {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  initApp();
-}
-
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════
-const PAGE_TITLES = {
+var PAGE_TITLES = {
   dashboard: ['Dashboard', 'Metamon Admin › Dashboard'],
   monitoring: ['Monitoring & Grafik', 'Metamon Admin › Monitoring'],
   incidents: ['Laporan Insiden', 'Metamon Admin › Insiden'],
@@ -2631,6 +2624,13 @@ async function loadAuditLog(page) {
   } catch (e) {
     toast('Gagal memuat audit log: ' + e.message, 'error');
   }
+}
+
+// Auto-start if already logged in
+if (state.token) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
 }
 </script>
 </body>
