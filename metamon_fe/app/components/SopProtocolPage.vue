@@ -69,10 +69,7 @@
             </div>
 
             <div class="task-content">
-              <label
-                :for="'task-' + task.id"
-                class="task-label"
-              >
+              <label :for="'task-' + task.id" class="task-label">
                 {{ task.title }}
               </label>
             </div>
@@ -106,13 +103,16 @@
               </svg>
               <span>Menunggu Verifikasi Admin</span>
             </div>
-            
-            <button v-if="task.completed && !task.verified && isAdmin" class="verify-btn" @click.stop="verifyTask(task)">
+
+            <button
+              v-if="task.completed && !task.verified && isAdmin"
+              class="verify-btn"
+              @click.stop="verifyTask(task)"
+            >
               Verifikasi
             </button>
           </div>
         </div>
-
       </section>
 
       <!-- CARD 2: Log Penanganan -->
@@ -128,7 +128,11 @@
         <div class="officers-grid">
           <div class="officer-card">
             <div class="officer-avatar-wrapper">
-              <img :src="user?.avatarUrl || '/officer_default.jpg'" :alt="user?.name" class="officer-avatar" />
+              <img
+                :src="user?.avatarUrl || '/officer_default.jpg'"
+                :alt="user?.name"
+                class="officer-avatar"
+              />
             </div>
             <div class="officer-details">
               <span class="role-tag command">Petugas Pelapor</span>
@@ -180,29 +184,41 @@
         </div>
 
         <div class="history-list">
-          <div v-if="incidents.length === 0" class="empty-state" style="padding: 20px; text-align: center; color: #6b7280; font-size: 13px;">
+          <div
+            v-if="incidents.length === 0"
+            class="empty-state"
+            style="padding: 20px; text-align: center; color: #6b7280; font-size: 13px"
+          >
             Belum ada riwayat insiden
           </div>
-          <div
-            v-for="incident in incidents"
-            :key="incident.id"
-            class="history-item"
-          >
+          <div v-for="incident in incidents" :key="incident.id" class="history-item">
             <div class="history-item-header">
               <div class="history-title-wrap">
                 <span class="history-status-icon">✓</span>
                 <h3 class="history-title">{{ incident.title }}</h3>
               </div>
               <span class="history-time">
-                {{ new Date(incident.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) }} WIB
+                {{
+                  new Date(incident.createdAt).toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                }}
+                WIB
               </span>
             </div>
             <p class="history-desc">
               {{ incident.description }}
             </p>
             <div class="history-footer">
-              <span class="resolved-tag">✓ {{ incident.status === 'resolved' ? 'Selesai' : 'Aktif' }}</span>
-              <span v-if="incident.sector" class="sector-tag">Sektor {{ incident.sector.sectorCode }}</span>
+              <span class="resolved-tag"
+                >✓ {{ incident.status === 'resolved' ? 'Selesai' : 'Aktif' }}</span
+              >
+              <span v-if="incident.sector" class="sector-tag"
+                >Sektor {{ incident.sector.sectorCode }}</span
+              >
             </div>
           </div>
         </div>
@@ -234,7 +250,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const { user, isAdmin, getSopTasks, toggleSopTask, verifySopTask, getIncidents, createIncident } = useApi();
+const { user, isAdmin, getSopTasks, toggleSopTask, verifySopTask, getIncidents, createIncident } =
+  useApi();
 const toast = useToast();
 
 const tasks = ref([]);
@@ -245,11 +262,11 @@ async function fetchTasks() {
   try {
     const [taskRes, incidentRes] = await Promise.all([
       getSopTasks().catch(() => null),
-      getIncidents().catch(() => null)
+      getIncidents().catch(() => null),
     ]);
-    
+
     if (taskRes?.data?.tasks) {
-      tasks.value = taskRes.data.tasks.map(t => {
+      tasks.value = taskRes.data.tasks.map((t) => {
         let timeStr = '';
         if (t.completedAt) {
           const d = new Date(t.completedAt);
@@ -260,7 +277,7 @@ async function fetchTasks() {
           title: t.title,
           verified: t.isCompleted,
           completed: t.isChecked,
-          time: timeStr
+          time: timeStr,
         };
       });
     }
@@ -290,12 +307,12 @@ const progressPercentage = computed(() =>
 function toggleTask(task) {
   if (task.verified) {
     if (isAdmin.value) {
-       // admin unchecking a verified task
-       toggleSopTask(task.id).then(fetchTasks);
+      // admin unchecking a verified task
+      toggleSopTask(task.id).then(fetchTasks);
     }
     return;
   }
-  
+
   if (task.completed) {
     if (!isAdmin.value) {
       // field worker unchecking a checked-but-unverified task
@@ -327,7 +344,9 @@ async function handleSaveLog() {
     });
     logNotes.value = ''; // Kosongkan setelah berhasil
     fetchTasks();
-    toast.success('Log penanganan & catatan mitigasi berhasil disimpan dan diteruskan ke Pusat Data DLH.');
+    toast.success(
+      'Log penanganan & catatan mitigasi berhasil disimpan dan diteruskan ke Pusat Data DLH.',
+    );
   } catch (e) {
     toast.error('Gagal menyimpan log: ' + e.message);
   }

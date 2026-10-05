@@ -24,7 +24,12 @@ export class AuthService {
       locationNote: dto.locationNote,
     });
 
-    const payload = { sub: officer.id, nip: officer.nip, name: officer.name, accessLevel: officer.accessLevel };
+    const payload = {
+      sub: officer.id,
+      nip: officer.nip,
+      name: officer.name,
+      accessLevel: officer.accessLevel,
+    };
     return {
       success: true,
       data: {

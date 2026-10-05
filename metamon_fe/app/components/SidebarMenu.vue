@@ -5,7 +5,11 @@
       <div class="sidebar-header">
         <div class="brand-group">
           <div class="brand-logo-icon">
-            <img src="/logo.png" alt="Metamon Logo" style="width:40px;height:40px;object-fit:contain;" />
+            <img
+              src="/logo.png"
+              alt="Metamon Logo"
+              style="width: 40px; height: 40px; object-fit: contain"
+            />
           </div>
           <span class="brand-title">Metamon</span>
         </div>

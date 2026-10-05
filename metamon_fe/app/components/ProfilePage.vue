@@ -396,7 +396,6 @@ import { ref, reactive, computed, onMounted } from 'vue';
 const emit = defineEmits(['logout']);
 
 const { user, getMe, updateMe } = useApi();
-const toast = useToast();
 
 // Profil dari state global (real-time dari server)
 const userProfile = computed(() => ({
@@ -460,7 +459,12 @@ async function toggleSetting(key) {
   const status = notifications[key] ? 'diaktifkan' : 'dinonaktifkan';
   const title = key === 'methaneAlert' ? 'Peringatan Metana' : 'Laporan Harian Ritase';
   try {
-    await updateMe({ notifications: { methaneAlert: notifications.methaneAlert, dailyReport: notifications.dailyReport } });
+    await updateMe({
+      notifications: {
+        methaneAlert: notifications.methaneAlert,
+        dailyReport: notifications.dailyReport,
+      },
+    });
     showToast(`${title} berhasil ${status}`);
   } catch {
     // error shown via useApi toast
@@ -469,7 +473,12 @@ async function toggleSetting(key) {
 
 async function saveProfile() {
   try {
-    await updateMe({ name: editForm.name, credentials: editForm.credentials, nip: editForm.nip, role: editForm.role });
+    await updateMe({
+      name: editForm.name,
+      credentials: editForm.credentials,
+      nip: editForm.nip,
+      role: editForm.role,
+    });
     // Refresh user state
     const res = await getMe();
     if (res?.data && typeof window !== 'undefined') {

@@ -16,6 +16,7 @@ const AppDataSource = new DataSource({
 
 async function seed() {
   await AppDataSource.initialize();
+  await AppDataSource.synchronize(true); // Drop & Recreate DB
   console.log('🌱 Seeding database Metamon...');
 
   const sectorRepo = AppDataSource.getRepository('sectors');
@@ -69,6 +70,10 @@ async function seed() {
     { nodeCode: 'A-04', sectorId: sectorMap['A'].id, batteryPercent: 98, isActive: true },
     { nodeCode: 'A-09', sectorId: sectorMap['A'].id, batteryPercent: 76, isActive: true },
     { nodeCode: 'D-02', sectorId: sectorMap['D'].id, batteryPercent: 100, isActive: true },
+    { nodeCode: 'B-15', sectorId: sectorMap['B'].id, batteryPercent: 45, isActive: true },
+    { nodeCode: 'C-02', sectorId: sectorMap['C'].id, batteryPercent: 91, isActive: true },
+    { nodeCode: 'D-08', sectorId: sectorMap['D'].id, batteryPercent: 82, isActive: true },
+    { nodeCode: 'A-12', sectorId: sectorMap['A'].id, batteryPercent: 68, isActive: true },
   ];
   const nodes = await nodeRepo.save(nodeData);
   const nodeMap = Object.fromEntries(nodes.map((n: any) => [n.nodeCode, n]));
@@ -82,6 +87,10 @@ async function seed() {
     { nodeId: nodeMap['A-04'].id, ch4Ppm: 190, recordedAt: new Date() },
     { nodeId: nodeMap['A-09'].id, ch4Ppm: 220, recordedAt: new Date() },
     { nodeId: nodeMap['D-02'].id, ch4Ppm: 115, recordedAt: new Date() },
+    { nodeId: nodeMap['B-15'].id, ch4Ppm: 1650, recordedAt: new Date() },
+    { nodeId: nodeMap['C-02'].id, ch4Ppm: 680, recordedAt: new Date() },
+    { nodeId: nodeMap['D-08'].id, ch4Ppm: 145, recordedAt: new Date() },
+    { nodeId: nodeMap['A-12'].id, ch4Ppm: 310, recordedAt: new Date() },
   ];
   await readingRepo.save(readingData);
   console.log('✅ Sensor readings seeded');
@@ -98,6 +107,39 @@ async function seed() {
     methaneAlertNotif: true,
     dailyReportNotif: true,
   });
+
+  await officerRepo.save([
+    {
+      name: 'Budi Santoso',
+      credentials: 'S.T.',
+      nip: '19900512 201502 1 001',
+      role: 'Petugas Lapangan Zona A & B',
+      avatarUrl: '',
+      passwordHash,
+      methaneAlertNotif: true,
+      dailyReportNotif: false,
+    },
+    {
+      name: 'Andi Wijaya',
+      credentials: 'A.Md.T.',
+      nip: '19921108 201703 1 002',
+      role: 'Petugas Lapangan Zona C & D',
+      avatarUrl: '',
+      passwordHash,
+      methaneAlertNotif: true,
+      dailyReportNotif: false,
+    },
+    {
+      name: 'Siti Aminah',
+      credentials: 'S.Si.',
+      nip: '19850220 201001 2 003',
+      role: 'Analis Data Lingkungan',
+      avatarUrl: '',
+      passwordHash,
+      methaneAlertNotif: false,
+      dailyReportNotif: true,
+    },
+  ]);
   console.log('✅ Officer seeded — NIP:', (officer as any).nip, '/ Password: admin123');
 
   // TRUCKS
@@ -114,8 +156,26 @@ async function seed() {
       reroutedSectorId: sectorMap['C'].id,
       isRerouted: true,
     },
+    {
+      plateNumber: 'B 1122 KAA',
+      originalSectorId: sectorMap['B'].id,
+      reroutedSectorId: sectorMap['A'].id,
+      isRerouted: true,
+    },
+    {
+      plateNumber: 'B 3344 LPO',
+      originalSectorId: sectorMap['B'].id,
+      reroutedSectorId: sectorMap['D'].id,
+      isRerouted: true,
+    },
     { plateNumber: 'B 3411 UOX', originalSectorId: sectorMap['A'].id, isRerouted: false },
     { plateNumber: 'B 9102 KAA', originalSectorId: sectorMap['D'].id, isRerouted: false },
+    { plateNumber: 'B 7765 JKL', originalSectorId: sectorMap['A'].id, isRerouted: false },
+    { plateNumber: 'B 2298 MNO', originalSectorId: sectorMap['C'].id, isRerouted: false },
+    { plateNumber: 'B 4431 PQR', originalSectorId: sectorMap['C'].id, isRerouted: false },
+    { plateNumber: 'B 8856 STU', originalSectorId: sectorMap['D'].id, isRerouted: false },
+    { plateNumber: 'B 6623 VWX', originalSectorId: sectorMap['A'].id, isRerouted: false },
+    { plateNumber: 'B 5519 YZA', originalSectorId: sectorMap['C'].id, isRerouted: false },
   ]);
   console.log('✅ Trucks seeded');
 
@@ -153,6 +213,27 @@ async function seed() {
       sectorId: sectorMap['B'].id,
       status: 'resolved',
       resolvedAt: new Date('2026-09-26T14:15:00'),
+    },
+    {
+      title: 'Sensor C-07 Kehilangan Koneksi',
+      description: 'Penggantian baterai pada sensor C-07 karena daya drop mendadak.',
+      sectorId: sectorMap['C'].id,
+      status: 'resolved',
+      resolvedAt: new Date('2026-09-28T10:20:00'),
+    },
+    {
+      title: 'Lonjakan Metana Ekstrem di Area Terbuka',
+      description: 'Inspeksi menemukan robekan pada geomembrane. Ditambal darurat.',
+      sectorId: sectorMap['B'].id,
+      status: 'open',
+      resolvedAt: null,
+    },
+    {
+      title: 'Sistem Pompa Lindi Error',
+      description: 'Pompa utama Sektor A mengalami overheat dan dimatikan otomatis.',
+      sectorId: sectorMap['A'].id,
+      status: 'open',
+      resolvedAt: null,
     },
   ]);
   console.log('✅ Incident logs seeded');

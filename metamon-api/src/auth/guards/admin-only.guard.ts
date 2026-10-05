@@ -11,7 +11,9 @@ export class AdminOnlyGuard implements CanActivate {
     const user = request.user;
 
     if (user?.accessLevel !== 'admin') {
-      throw new ForbiddenException('Akses ditolak. Hanya administrator yang dapat melakukan tindakan ini.');
+      throw new ForbiddenException(
+        'Akses ditolak. Hanya administrator yang dapat melakukan tindakan ini.',
+      );
     }
 
     return true;

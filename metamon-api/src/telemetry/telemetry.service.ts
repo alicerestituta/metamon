@@ -89,7 +89,9 @@ export class TelemetryService {
 
     const activeNodes = allNodes.filter((n) => n.isActive).length;
     const reroutedTrucks = allTrucks.filter((t) => t.isRerouted).length;
-    const dangerSectors = sectors.filter((s) => s.status === 'danger' || s.status === 'locked').length;
+    const dangerSectors = sectors.filter(
+      (s) => s.status === 'danger' || s.status === 'locked',
+    ).length;
     const warningSectors = sectors.filter((s) => s.status === 'warning').length;
 
     // CH4 series harian (last 7 days — aggregate per day)

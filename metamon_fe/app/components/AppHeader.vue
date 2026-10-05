@@ -2,7 +2,11 @@
   <header class="app-header">
     <div class="brand-container" style="cursor: pointer" @click="emit('go-home')">
       <div class="brand-logo-icon">
-        <img src="/logo.png" alt="Metamon Logo" style="width:40px;height:40px;object-fit:contain;" />
+        <img
+          src="/logo.png"
+          alt="Metamon Logo"
+          style="width: 40px; height: 40px; object-fit: contain"
+        />
       </div>
       <span class="brand-name">Metamon</span>
     </div>

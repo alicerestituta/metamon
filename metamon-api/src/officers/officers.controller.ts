@@ -68,7 +68,11 @@ export class OfficersController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.officersService.findAll({ search, page: Number(page) || 1, limit: Number(limit) || 20 });
+    return this.officersService.findAll({
+      search,
+      page: Number(page) || 1,
+      limit: Number(limit) || 20,
+    });
   }
 
   @ApiOperation({ summary: '[Admin] Buat petugas baru' })
@@ -118,10 +122,10 @@ export class OfficersController {
 
   @ApiOperation({ summary: '[Admin] Semua audit log login (semua petugas)' })
   @Get('admin/audit-logs')
-  getAllAuditLogs(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return this.officersService.getAllAuditLogs({ page: Number(page) || 1, limit: Number(limit) || 20 });
+  getAllAuditLogs(@Query('page') page?: number, @Query('limit') limit?: number) {
+    return this.officersService.getAllAuditLogs({
+      page: Number(page) || 1,
+      limit: Number(limit) || 20,
+    });
   }
 }

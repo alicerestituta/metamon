@@ -100,12 +100,12 @@ export class TrucksService {
     const fromSector = await this.sectorRepo.findOne({ where: { sectorCode } });
     if (!fromSector) throw new NotFoundException('Sektor tidak ditemukan');
 
-    const trucks = await this.truckRepo.find({ where: { originalSectorId: fromSector.id, isRerouted: true } });
-    
+    const trucks = await this.truckRepo.find({
+      where: { originalSectorId: fromSector.id, isRerouted: true },
+    });
+
     await Promise.all(
-      trucks.map((t) =>
-        this.truckRepo.update(t.id, { isRerouted: false, reroutedSectorId: null }),
-      ),
+      trucks.map((t) => this.truckRepo.update(t.id, { isRerouted: false, reroutedSectorId: null })),
     );
 
     return {

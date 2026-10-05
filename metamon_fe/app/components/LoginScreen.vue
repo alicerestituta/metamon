@@ -3,7 +3,11 @@
     <div class="login-card">
       <!-- Logo / Brand -->
       <div class="brand-area">
-        <img src="/logo.png" alt="Metamon Logo" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;" />
+        <img
+          src="/logo.png"
+          alt="Metamon Logo"
+          style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0"
+        />
         <div>
           <h1 class="brand-name">Metamon</h1>
           <p class="brand-sub">TPA Bantar Gebang — Sistem Telemetri Gas Metana</p>

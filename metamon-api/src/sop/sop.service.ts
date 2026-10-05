@@ -43,23 +43,28 @@ export class SopService {
 
     if (task.isCompleted) {
       if (isAdmin) {
-         await this.taskRepo.update(id, { isCompleted: false, isChecked: false, completedAt: null });
+        await this.taskRepo.update(id, { isCompleted: false, isChecked: false, completedAt: null });
       }
     } else {
       await this.taskRepo.update(id, { isChecked: !task.isChecked });
     }
-    
+
     const updated = await this.taskRepo.findOne({ where: { id } });
     return {
       success: true,
-      data: { id, isCompleted: updated.isCompleted, isChecked: updated.isChecked, completedAt: updated.completedAt },
+      data: {
+        id,
+        isCompleted: updated.isCompleted,
+        isChecked: updated.isChecked,
+        completedAt: updated.completedAt,
+      },
     };
   }
 
   async verifyTask(id: string) {
     const task = await this.taskRepo.findOne({ where: { id } });
     if (!task) throw new NotFoundException('Task tidak ditemukan');
-    
+
     await this.taskRepo.update(id, {
       isCompleted: true,
       isChecked: true,
@@ -68,7 +73,12 @@ export class SopService {
     const updated = await this.taskRepo.findOne({ where: { id } });
     return {
       success: true,
-      data: { id, isCompleted: updated.isCompleted, isChecked: updated.isChecked, completedAt: updated.completedAt },
+      data: {
+        id,
+        isCompleted: updated.isCompleted,
+        isChecked: updated.isChecked,
+        completedAt: updated.completedAt,
+      },
     };
   }
 

@@ -247,7 +247,9 @@ function handleNavigation(viewName) {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .app-main-content {

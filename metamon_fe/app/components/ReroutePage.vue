@@ -2,11 +2,22 @@
   <div class="reroute-page-container">
     <!-- Banner Read-Only untuk User Lapangan -->
     <div v-if="!isAdmin" class="readonly-banner">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
       </svg>
-      <span>Mode <strong>Lihat Saja</strong> &mdash; Anda tidak memiliki akses untuk mengubah rute kendaraan. Hubungi administrator untuk melakukan perubahan.</span>
+      <span
+        >Mode <strong>Lihat Saja</strong> &mdash; Anda tidak memiliki akses untuk mengubah rute
+        kendaraan. Hubungi administrator untuk melakukan perubahan.</span
+      >
     </div>
 
     <!-- Section 1: Kontrol Intervensi Petugas (Admin Only) -->

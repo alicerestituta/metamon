@@ -78,7 +78,9 @@ export function useApi() {
           if (!silent && !_sessionExpiredPending) {
             _sessionExpiredPending = true;
             toast.error('Sesi Anda telah berakhir. Silakan masuk kembali.');
-            setTimeout(() => { _sessionExpiredPending = false; }, 2000);
+            setTimeout(() => {
+              _sessionExpiredPending = false;
+            }, 2000);
           }
         }
         throw new Error(msg);
