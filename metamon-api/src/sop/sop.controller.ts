@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminOnlyGuard } from '../auth/guards/admin-only.guard';
 import { SopService } from './sop.service';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
@@ -22,8 +23,16 @@ export class SopController {
 
   @ApiOperation({ summary: 'Toggle selesai/belum pada satu tugas' })
   @Patch('tasks/:id/toggle')
-  toggleTask(@Param('id') id: string) {
-    return this.sopService.toggleTask(id);
+  toggleTask(@Param('id') id: string, @Req() req: any) {
+    const isAdmin = req.user?.accessLevel === 'admin';
+    return this.sopService.toggleTask(id, isAdmin);
+  }
+
+  @ApiOperation({ summary: 'Verifikasi tugas oleh admin' })
+  @UseGuards(AdminOnlyGuard)
+  @Patch('tasks/:id/verify')
+  verifyTask(@Param('id') id: string) {
+    return this.sopService.verifyTask(id);
   }
 
   @ApiOperation({ summary: 'Riwayat insiden K3 TPA' })

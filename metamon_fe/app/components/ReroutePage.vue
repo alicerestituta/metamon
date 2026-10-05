@@ -1,7 +1,16 @@
 <template>
   <div class="reroute-page-container">
-    <!-- Section 1: Kontrol Intervensi Petugas -->
-    <section class="reroute-card">
+    <!-- Banner Read-Only untuk User Lapangan -->
+    <div v-if="!isAdmin" class="readonly-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      <span>Mode <strong>Lihat Saja</strong> &mdash; Anda tidak memiliki akses untuk mengubah rute kendaraan. Hubungi administrator untuk melakukan perubahan.</span>
+    </div>
+
+    <!-- Section 1: Kontrol Intervensi Petugas (Admin Only) -->
+    <section v-if="isAdmin" class="reroute-card">
       <div class="card-header">
         <h1 class="card-title">Kontrol Intervensi Petugas</h1>
         <p class="card-subtext">Pengalihan arus truk dan muatan aktif</p>
@@ -158,8 +167,8 @@
             </template>
           </div>
 
-          <!-- Reroute Actions (Only if rerouted) -->
-          <div v-if="truck.isRerouted" class="truck-action-row">
+          <!-- Reroute Actions (Only if rerouted AND user is admin) -->
+          <div v-if="truck.isRerouted && isAdmin" class="truck-action-row">
             <span class="action-label">Ubah Pengalihan:</span>
             <div class="action-btn-group">
               <button class="shift-btn" @click="changeTruckTarget(truck, 'Sektor A')">
@@ -189,7 +198,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 
-const { getSectors, getTrucks, rerouteBulk, rerouteTruck } = useApi();
+const { getSectors, getTrucks, rerouteBulk, rerouteTruck, isAdmin } = useApi();
 const toast = useToast();
 
 const selectedTargetSector = ref(''); // ex: 'A'
@@ -316,6 +325,24 @@ onMounted(() => {
   flex-direction: column;
   gap: 16px;
   box-sizing: border-box;
+}
+
+/* Banner Read-Only */
+.readonly-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.readonly-banner strong {
+  font-weight: 800;
 }
 
 /* Shared Card Styling */

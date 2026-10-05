@@ -72,13 +72,12 @@
               <label
                 :for="'task-' + task.id"
                 class="task-label"
-                :class="{ strikethrough: task.completed }"
               >
                 {{ task.title }}
               </label>
             </div>
 
-            <div v-if="task.completed" class="verified-badge">
+            <div v-if="task.verified" class="verified-badge">
               <svg
                 width="12"
                 height="12"
@@ -92,8 +91,28 @@
               </svg>
               <span>Terverifikasi {{ task.time || '10:14 WIB' }}</span>
             </div>
+            <div v-else-if="task.completed" class="pending-badge">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#d97706"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Menunggu Verifikasi Admin</span>
+            </div>
+            
+            <button v-if="task.completed && !task.verified && isAdmin" class="verify-btn" @click.stop="verifyTask(task)">
+              Verifikasi
+            </button>
           </div>
         </div>
+
       </section>
 
       <!-- CARD 2: Log Penanganan -->
@@ -107,27 +126,14 @@
 
         <!-- Officers Grid -->
         <div class="officers-grid">
-          <!-- Officer 1 -->
           <div class="officer-card">
             <div class="officer-avatar-wrapper">
-              <img src="/officer_bambang.png" alt="Bambang Suharto Wijaya" class="officer-avatar" />
+              <img :src="user?.avatarUrl || '/officer_default.jpg'" :alt="user?.name" class="officer-avatar" />
             </div>
             <div class="officer-details">
-              <span class="role-tag command">Penanggung Jawab Komando</span>
-              <h3 class="officer-name">Bambang Suharto Wijaya</h3>
-              <span class="officer-nip">NIP: 19840312 200801 1 004</span>
-            </div>
-          </div>
-
-          <!-- Officer 2 -->
-          <div class="officer-card">
-            <div class="officer-avatar-wrapper">
-              <img src="/officer_indra.png" alt="Indra Setiawan Nugraha" class="officer-avatar" />
-            </div>
-            <div class="officer-details">
-              <span class="role-tag supervisor">Pengawas Lapangan</span>
-              <h3 class="officer-name">Indra Setiawan Nugraha</h3>
-              <span class="officer-nip">NIP: 19900824 201402 1 009</span>
+              <span class="role-tag command">Petugas Pelapor</span>
+              <h3 class="officer-name">{{ user?.name || 'Petugas' }}</h3>
+              <span class="officer-nip">NIP: {{ user?.nip || '-' }}</span>
             </div>
           </div>
         </div>
@@ -174,39 +180,29 @@
         </div>
 
         <div class="history-list">
-          <!-- History Item 1 -->
-          <div class="history-item">
-            <div class="history-item-header">
-              <div class="history-title-wrap">
-                <span class="history-status-icon">✓</span>
-                <h3 class="history-title">Tekanan Balik Pipa Lindi</h3>
-              </div>
-              <span class="history-time">Hari Ini, 08:30 WIB</span>
-            </div>
-            <p class="history-desc">
-              Pembersihan sedimentasi kerak & flushing katup primer sektor B.
-            </p>
-            <div class="history-footer">
-              <span class="resolved-tag">✓ Selesai</span>
-              <span class="sector-tag">Sektor B</span>
-            </div>
+          <div v-if="incidents.length === 0" class="empty-state" style="padding: 20px; text-align: center; color: #6b7280; font-size: 13px;">
+            Belum ada riwayat insiden
           </div>
-
-          <!-- History Item 2 -->
-          <div class="history-item">
+          <div
+            v-for="incident in incidents"
+            :key="incident.id"
+            class="history-item"
+          >
             <div class="history-item-header">
               <div class="history-title-wrap">
                 <span class="history-status-icon">✓</span>
-                <h3 class="history-title">Saturasi Gas Dekat Jalan Masuk</h3>
+                <h3 class="history-title">{{ incident.title }}</h3>
               </div>
-              <span class="history-time">Kemarin, 14:15 WIB</span>
+              <span class="history-time">
+                {{ new Date(incident.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) }} WIB
+              </span>
             </div>
             <p class="history-desc">
-              Aerasi portabel & penutupan membrane geomembrane tambahan sektor B.
+              {{ incident.description }}
             </p>
             <div class="history-footer">
-              <span class="resolved-tag">✓ Selesai</span>
-              <span class="sector-tag">Sektor B</span>
+              <span class="resolved-tag">✓ {{ incident.status === 'resolved' ? 'Selesai' : 'Aktif' }}</span>
+              <span v-if="incident.sector" class="sector-tag">Sektor {{ incident.sector.sectorCode }}</span>
             </div>
           </div>
         </div>
@@ -236,56 +232,105 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const tasks = ref([
-  {
-    id: 1,
-    title: 'Sterilisasi Perimeter Zona Merah (Radius 50m)',
-    completed: true,
-    time: '10:14 WIB',
-  },
-  {
-    id: 2,
-    title: 'Pengalihan Lalu Lintas Truk ke Sektor C',
-    completed: true,
-    time: '10:18 WIB',
-  },
-  {
-    id: 3,
-    title: 'Eksekusi Aerasi Sampah (Pengerukan Ekskavator)',
-    completed: false,
-    time: '',
-  },
-  {
-    id: 4,
-    title: 'Injeksi Air Pendingin ke Pipa Sensor',
-    completed: false,
-    time: '',
-  },
-]);
+const { user, isAdmin, getSopTasks, toggleSopTask, verifySopTask, getIncidents, createIncident } = useApi();
+const toast = useToast();
 
-const logNotes = ref(
-  'Tim damkar standby di radius 100m. Pembacaan metana mulai melandai dari puncak 1.620 ppm.',
-);
+const tasks = ref([]);
+const incidents = ref([]);
+const logNotes = ref('');
 
-const completedCount = computed(() => tasks.value.filter((t) => t.completed).length);
+async function fetchTasks() {
+  try {
+    const [taskRes, incidentRes] = await Promise.all([
+      getSopTasks().catch(() => null),
+      getIncidents().catch(() => null)
+    ]);
+    
+    if (taskRes?.data?.tasks) {
+      tasks.value = taskRes.data.tasks.map(t => {
+        let timeStr = '';
+        if (t.completedAt) {
+          const d = new Date(t.completedAt);
+          timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} WIB`;
+        }
+        return {
+          id: t.id,
+          title: t.title,
+          verified: t.isCompleted,
+          completed: t.isChecked,
+          time: timeStr
+        };
+      });
+    }
+
+    if (incidentRes?.data?.incidents) {
+      incidents.value = incidentRes.data.incidents;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+let pollInterval;
+onMounted(() => {
+  fetchTasks();
+  pollInterval = setInterval(fetchTasks, 3000); // Sinkronisasi otomatis setiap 3 detik
+});
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval);
+});
+
+const completedCount = computed(() => tasks.value.filter((t) => t.verified).length);
 const progressPercentage = computed(() =>
   Math.round((completedCount.value / tasks.value.length) * 100),
 );
 
 function toggleTask(task) {
-  task.completed = !task.completed;
-  if (task.completed && !task.time) {
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    task.time = `${hh}:${mm} WIB`;
+  if (task.verified) {
+    if (isAdmin.value) {
+       // admin unchecking a verified task
+       toggleSopTask(task.id).then(fetchTasks);
+    }
+    return;
+  }
+  
+  if (task.completed) {
+    if (!isAdmin.value) {
+      // field worker unchecking a checked-but-unverified task
+      toggleSopTask(task.id).then(fetchTasks);
+    } else {
+      // admin clicking a pending task -> verify it
+      verifySopTask(task.id).then(fetchTasks);
+    }
+  } else {
+    // checking a task
+    if (isAdmin.value) {
+      verifySopTask(task.id).then(fetchTasks);
+    } else {
+      toggleSopTask(task.id).then(fetchTasks);
+    }
   }
 }
 
-function handleSaveLog() {
-  alert('Log penanganan & catatan mitigasi berhasil disimpan dan diteruskan ke Pusat Data DLH.');
+function verifyTask(task) {
+  verifySopTask(task.id).then(fetchTasks);
+}
+
+async function handleSaveLog() {
+  if (!logNotes.value.trim()) return;
+  try {
+    await createIncident({
+      title: 'Log Penanganan Lapangan',
+      description: logNotes.value,
+    });
+    logNotes.value = ''; // Kosongkan setelah berhasil
+    fetchTasks();
+    toast.success('Log penanganan & catatan mitigasi berhasil disimpan dan diteruskan ke Pusat Data DLH.');
+  } catch (e) {
+    toast.error('Gagal menyimpan log: ' + e.message);
+  }
 }
 
 function handleOpenArchive() {
@@ -524,6 +569,33 @@ function handleOpenArchive() {
   background: #e6f4e6;
   padding: 3px 8px;
   border-radius: 6px;
+}
+
+.pending-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #d97706;
+  background: #fef3c7;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.verify-btn {
+  background: #057602;
+  color: #ffffff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.verify-btn:hover {
+  background: #046201;
 }
 
 /* Officers Grid */

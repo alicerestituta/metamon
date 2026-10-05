@@ -861,10 +861,8 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-logo">
-        <svg width="18" height="12" viewBox="0 0 19 13" fill="none">
-          <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#FFFFFF"/>
-        </svg>
+      <div class="brand-logo" style="background:none;padding:0;">
+        <img src="./logo.png" alt="Metamon Logo" style="width:48px;height:48px;object-fit:contain;" />
       </div>
       <div>
         <div class="brand-text">Metamon</div>
@@ -2430,17 +2428,29 @@ function renderSopTasks(data) {
   const completed = data?.completedCount || 0;
   const total = data?.totalCount || 0;
   document.getElementById('sop-progress-text').textContent = `${completed} dari ${total} langkah selesai`;
-  document.getElementById('sop-tasks-list').innerHTML = tasks.length ? tasks.map(t => `
-    <div class="task-item">
-      <div class="task-check ${t.isCompleted ? 'done' : ''}" onclick="toggleSopTask('${t.id}', ${t.isCompleted})">
-        ${t.isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-      </div>
+  document.getElementById('sop-tasks-list').innerHTML = tasks.length ? tasks.map(t => {
+    let statusHtml = '';
+    let actionBtn = '';
+    
+    if (t.isCompleted) {
+      statusHtml = `<span class="badge" style="background:#ECFDF5;color:#057602">Terverifikasi: ${fmtDateTime(t.completedAt)}</span>`;
+      actionBtn = `<button class="btn btn-sm" onclick="toggleSopTask('${t.id}', true)">Batal</button>`;
+    } else if (t.isChecked) {
+      statusHtml = `<span class="badge" style="background:#FFFBEB;color:#D97706">Menunggu Verifikasi</span>`;
+      actionBtn = `<button class="btn btn-sm btn-primary" onclick="verifySopTask('${t.id}')">Verifikasi</button>`;
+    } else {
+      statusHtml = `<span class="text-sm text-muted">Belum dicentang lapangan</span>`;
+    }
+
+    return `
+    <div class="task-item flex-between" style="padding:10px 0;border-bottom:1px solid var(--border)">
       <div>
-        <div class="task-title ${t.isCompleted ? 'done' : ''}">${t.orderIndex}. ${t.title}</div>
-        <div class="task-meta">${t.isCompleted ? `Selesai: ${fmtDateTime(t.completedAt)}` : 'Belum selesai'}</div>
+        <div class="task-title ${t.isCompleted ? 'done' : ''}" style="font-weight:700">${t.orderIndex}. ${t.title}</div>
+        <div class="task-meta mt-1">${statusHtml}</div>
       </div>
+      <div>${actionBtn}</div>
     </div>
-  `).join('') : '<div class="empty-state"><p>Tidak ada tugas</p></div>';
+  `}).join('') : '<div class="empty-state"><p>Tidak ada tugas</p></div>';
 }
 
 function renderSopIncidents(incidents) {
@@ -2458,10 +2468,20 @@ function renderSopIncidents(incidents) {
 async function toggleSopTask(id, currentStatus) {
   try {
     await api(`/sop/tasks/${id}/toggle`, { method: 'PATCH' });
-    toast(currentStatus ? 'Tugas ditandai belum selesai' : 'Tugas berhasil diselesaikan', 'success');
+    toast(currentStatus ? 'Verifikasi tugas dibatalkan' : 'Tugas berhasil diubah', 'success');
     loadSop();
   } catch (e) {
     toast('Gagal update tugas: ' + e.message, 'error');
+  }
+}
+
+async function verifySopTask(id) {
+  try {
+    await api(`/sop/tasks/${id}/verify`, { method: 'PATCH' });
+    toast('Tugas berhasil diverifikasi', 'success');
+    loadSop();
+  } catch (e) {
+    toast('Gagal verifikasi tugas: ' + e.message, 'error');
   }
 }
 

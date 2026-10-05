@@ -4,8 +4,13 @@
     <!-- Global Toast Notifications -->
     <AppToast />
 
+    <!-- Loading saat validasi token awal -->
+    <div v-if="!appReady" class="app-init-loader">
+      <span class="init-spinner"></span>
+    </div>
+
     <!-- Login Screen -->
-    <LoginScreen v-if="!isLoggedIn" @login-success="onLoginSuccess" />
+    <LoginScreen v-else-if="!isLoggedIn" @login-success="onLoginSuccess" />
 
     <template v-else>
       <!-- Top Header (Logo click returns to Dashboard) -->
@@ -161,12 +166,38 @@ import SensorLogModal from './components/SensorLogModal.vue';
 import SafetyProtocolModal from './components/SafetyProtocolModal.vue';
 import LoginScreen from './components/LoginScreen.vue';
 
-const { isLoggedIn, logout } = useApi();
+const { isLoggedIn, token, user, logout, getMe } = useApi();
 
 const currentView = ref('dashboard');
 const showSidebar = ref(false);
 const showLogsModal = ref(false);
 const showProtocolModal = ref(false);
+
+// Validasi token secara diam-diam saat pertama load
+const appReady = ref(false);
+onMounted(async () => {
+  if (token.value) {
+    try {
+      // Ambil data terbaru dari server dan update user state
+      const res = await getMe({ silent: true });
+      if (res?.data) {
+        user.value = res.data;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('metamon_user', JSON.stringify(res.data));
+        }
+      }
+    } catch {
+      // Token tidak valid — hapus sesi tanpa toast
+      token.value = null;
+      user.value = null;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('metamon_token');
+        localStorage.removeItem('metamon_user');
+      }
+    }
+  }
+  appReady.value = true;
+});
 
 async function onLoginSuccess() {
   // Seed historical data in background so chart has data immediately
@@ -198,6 +229,27 @@ function handleNavigation(viewName) {
 </script>
 
 <style scoped>
+.app-init-loader {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d1117;
+}
+
+.init-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(203, 5, 37, 0.2);
+  border-top-color: #cb0525;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .app-main-content {
   flex: 1;
   display: flex;

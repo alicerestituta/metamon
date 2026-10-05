@@ -14,6 +14,10 @@ const USER_KEY = 'metamon_user';
 const token = ref<string | null>(null);
 const user = ref<Record<string, any> | null>(null);
 
+// Flag untuk mencegah toast "Sesi berakhir" muncul berkali-kali
+// saat banyak request gagal 401 secara bersamaan
+let _sessionExpiredPending = false;
+
 // Hydrate from localStorage on first import (client-side only)
 if (typeof window !== 'undefined') {
   token.value = localStorage.getItem(TOKEN_KEY);
@@ -31,13 +35,14 @@ export function useApi() {
   const toast = useToast();
 
   const isLoggedIn = computed(() => !!token.value);
+  const isAdmin = computed(() => user.value?.accessLevel === 'admin');
 
   // ── Low-level fetch wrapper ───────────────────────────────────────────────
   async function apiFetch<T = any>(
     path: string,
-    options: RequestInit & { params?: Record<string, any> } = {},
+    options: RequestInit & { params?: Record<string, any>; silent?: boolean } = {},
   ): Promise<T> {
-    const { params, ...fetchOptions } = options;
+    const { params, silent, ...fetchOptions } = options;
 
     let url = `${baseURL}${path}`;
     if (params) {
@@ -58,19 +63,27 @@ export function useApi() {
     const res = await fetch(url, { ...fetchOptions, headers, cache: 'no-store' });
 
     if (!res.ok) {
-      if (res.status === 401) {
-        token.value = null;
-        user.value = null;
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-        }
-        toast.error('Sesi Anda telah berakhir. Silakan masuk kembali.');
-        throw new Error('Unauthorized');
-      }
       const err = await res.json().catch(() => ({}));
       const msg = err?.message ?? `Terjadi kesalahan (HTTP ${res.status})`;
-      toast.error(msg);
+      if (res.status === 401) {
+        // Jangan hapus sesi jika ini adalah request login (belum ada token)
+        if (token.value) {
+          token.value = null;
+          user.value = null;
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+          }
+          // Tampilkan toast hanya sekali meski banyak request 401 bersamaan
+          if (!silent && !_sessionExpiredPending) {
+            _sessionExpiredPending = true;
+            toast.error('Sesi Anda telah berakhir. Silakan masuk kembali.');
+            setTimeout(() => { _sessionExpiredPending = false; }, 2000);
+          }
+        }
+        throw new Error(msg);
+      }
+      if (!silent) toast.error(msg);
       throw new Error(msg);
     }
 
@@ -137,8 +150,8 @@ export function useApi() {
   }
 
   // ── Officer Profile ───────────────────────────────────────────────────────
-  async function getMe() {
-    return apiFetch<any>('/officers/me');
+  async function getMe(options?: { silent?: boolean }) {
+    return apiFetch<any>('/officers/me', { silent: options?.silent });
   }
 
   async function updateMe(dto: Record<string, any>) {
@@ -168,11 +181,36 @@ export function useApi() {
     return apiFetch<any>('/readings/seed-history');
   }
 
+  // ── SOP Tasks ─────────────────────────────────────────────────────────────
+  async function getSopTasks() {
+    return apiFetch<any>('/sop/tasks');
+  }
+
+  async function toggleSopTask(id: string) {
+    return apiFetch<any>(`/sop/tasks/${id}/toggle`, { method: 'PATCH' });
+  }
+
+  async function verifySopTask(id: string) {
+    return apiFetch<any>(`/sop/tasks/${id}/verify`, { method: 'PATCH' });
+  }
+
+  async function getIncidents() {
+    return apiFetch<any>('/sop/incidents');
+  }
+
+  async function createIncident(data: { title: string; description: string; sectorCode?: string }) {
+    return apiFetch<any>('/sop/incidents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   return {
     // state
     token,
     user,
     isLoggedIn,
+    isAdmin,
     // auth
     login,
     logout,
@@ -188,5 +226,10 @@ export function useApi() {
     rerouteTruck,
     rerouteBulk,
     seedTodayHistory,
+    getSopTasks,
+    toggleSopTask,
+    verifySopTask,
+    getIncidents,
+    createIncident,
   };
 }

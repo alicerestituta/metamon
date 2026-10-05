@@ -3,22 +3,7 @@
     <div class="login-card">
       <!-- Logo / Brand -->
       <div class="brand-area">
-        <div class="brand-icon">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#FFFFFF"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-            <line x1="9" y1="9" x2="9.01" y2="9" />
-            <line x1="15" y1="9" x2="15.01" y2="9" />
-          </svg>
-        </div>
+        <img src="/logo.png" alt="Metamon Logo" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;" />
         <div>
           <h1 class="brand-name">Metamon</h1>
           <p class="brand-sub">TPA Bantar Gebang — Sistem Telemetri Gas Metana</p>
@@ -168,17 +153,7 @@ async function doLogin() {
   margin-bottom: 28px;
 }
 
-.brand-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #cb0525, #8b0018);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 6px 20px rgba(203, 5, 37, 0.35);
-}
+/* .brand-icon removed - using img directly */
 
 .brand-name {
   font-size: 22px;

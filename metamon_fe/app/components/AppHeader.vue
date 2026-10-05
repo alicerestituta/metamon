@@ -2,15 +2,7 @@
   <header class="app-header">
     <div class="brand-container" style="cursor: pointer" @click="emit('go-home')">
       <div class="brand-logo-icon">
-        <svg
-          width="20"
-          height="14"
-          viewBox="0 0 19 13"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M 0 13 C 0 6 5 0 12 0 C 16 0 19 3 19 7 C 19 10 16 13 12 13 Z" fill="#057602" />
-        </svg>
+        <img src="/logo.png" alt="Metamon Logo" style="width:40px;height:40px;object-fit:contain;" />
       </div>
       <span class="brand-name">Metamon</span>
     </div>
@@ -64,6 +56,8 @@ function onToggle() {
 .brand-logo-icon {
   display: flex;
   align-items: center;
+  width: 40px;
+  height: 40px;
 }
 
 .brand-name {

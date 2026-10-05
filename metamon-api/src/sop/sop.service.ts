@@ -27,6 +27,7 @@ export class SopService {
           id: t.id,
           title: t.title,
           isCompleted: t.isCompleted,
+          isChecked: t.isChecked,
           completedAt: t.completedAt,
           orderIndex: t.orderIndex,
         })),
@@ -36,19 +37,38 @@ export class SopService {
     };
   }
 
-  async toggleTask(id: string) {
+  async toggleTask(id: string, isAdmin: boolean) {
     const task = await this.taskRepo.findOne({ where: { id } });
     if (!task) throw new NotFoundException('Task tidak ditemukan');
 
-    const isCompleted = !task.isCompleted;
+    if (task.isCompleted) {
+      if (isAdmin) {
+         await this.taskRepo.update(id, { isCompleted: false, isChecked: false, completedAt: null });
+      }
+    } else {
+      await this.taskRepo.update(id, { isChecked: !task.isChecked });
+    }
+    
+    const updated = await this.taskRepo.findOne({ where: { id } });
+    return {
+      success: true,
+      data: { id, isCompleted: updated.isCompleted, isChecked: updated.isChecked, completedAt: updated.completedAt },
+    };
+  }
+
+  async verifyTask(id: string) {
+    const task = await this.taskRepo.findOne({ where: { id } });
+    if (!task) throw new NotFoundException('Task tidak ditemukan');
+    
     await this.taskRepo.update(id, {
-      isCompleted,
-      completedAt: isCompleted ? new Date() : null,
+      isCompleted: true,
+      isChecked: true,
+      completedAt: new Date(),
     });
     const updated = await this.taskRepo.findOne({ where: { id } });
     return {
       success: true,
-      data: { id, isCompleted: updated.isCompleted, completedAt: updated.completedAt },
+      data: { id, isCompleted: updated.isCompleted, isChecked: updated.isChecked, completedAt: updated.completedAt },
     };
   }
 

@@ -32,7 +32,7 @@
       </div>
 
       <!-- Edit Profile Button -->
-      <button class="edit-profile-btn" @click="isEditingProfile = true">
+      <button class="edit-profile-btn" @click="openEditModal">
         <svg
           class="btn-icon"
           width="16"
@@ -391,27 +391,54 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 
 const emit = defineEmits(['logout']);
 
-// Officer Profile State (Matching Figma Specs)
-const userProfile = reactive({
-  name: 'Ratna Sari Dewi',
-  credentials: 'S.T., M.Ling.',
-  nip: '19880415 201201 2 004',
-  role: 'Koordinator Keselamatan Lingkungan & K3 TPA',
-  avatar: '/officer_ratna.jpg',
+const { user, getMe, updateMe } = useApi();
+const toast = useToast();
+
+// Profil dari state global (real-time dari server)
+const userProfile = computed(() => ({
+  name: user.value?.name ?? '-',
+  credentials: user.value?.credentials ?? '-',
+  nip: user.value?.nip ?? '-',
+  role: user.value?.role ?? '-',
+  avatar: user.value?.avatarUrl ?? '/officer_default.jpg',
+}));
+
+// Edit Form State — diisi ulang saat modal dibuka
+const isEditingProfile = ref(false);
+const editForm = reactive({
+  name: '',
+  credentials: '',
+  nip: '',
+  role: '',
 });
 
-// Edit Form State
-const isEditingProfile = ref(false);
-const editForm = reactive({ ...userProfile });
+function openEditModal() {
+  editForm.name = user.value?.name ?? '';
+  editForm.credentials = user.value?.credentials ?? '';
+  editForm.nip = user.value?.nip ?? '';
+  editForm.role = user.value?.role ?? '';
+  isEditingProfile.value = true;
+}
 
 // Notification Preferences
 const notifications = reactive({
-  methaneAlert: true,
-  dailyReport: true,
+  methaneAlert: user.value?.notifications?.methaneAlert ?? true,
+  dailyReport: user.value?.notifications?.dailyReport ?? true,
+});
+
+// Sync notifikasi saat user berubah (misal ganti akun)
+onMounted(async () => {
+  try {
+    const res = await getMe();
+    if (res?.data?.notifications) {
+      notifications.methaneAlert = res.data.notifications.methaneAlert;
+      notifications.dailyReport = res.data.notifications.dailyReport;
+    }
+  } catch {}
 });
 
 // Modals State
@@ -428,20 +455,31 @@ function showToast(msg) {
   }, 2500);
 }
 
-function toggleSetting(key) {
+async function toggleSetting(key) {
   notifications[key] = !notifications[key];
   const status = notifications[key] ? 'diaktifkan' : 'dinonaktifkan';
   const title = key === 'methaneAlert' ? 'Peringatan Metana' : 'Laporan Harian Ritase';
-  showToast(`${title} berhasil ${status}`);
+  try {
+    await updateMe({ notifications: { methaneAlert: notifications.methaneAlert, dailyReport: notifications.dailyReport } });
+    showToast(`${title} berhasil ${status}`);
+  } catch {
+    // error shown via useApi toast
+  }
 }
 
-function saveProfile() {
-  userProfile.name = editForm.name;
-  userProfile.credentials = editForm.credentials;
-  userProfile.nip = editForm.nip;
-  userProfile.role = editForm.role;
-  isEditingProfile.value = false;
-  showToast('Data profil berhasil diperbarui');
+async function saveProfile() {
+  try {
+    await updateMe({ name: editForm.name, credentials: editForm.credentials, nip: editForm.nip, role: editForm.role });
+    // Refresh user state
+    const res = await getMe();
+    if (res?.data && typeof window !== 'undefined') {
+      localStorage.setItem('metamon_user', JSON.stringify(res.data));
+    }
+    isEditingProfile.value = false;
+    showToast('Data profil berhasil diperbarui');
+  } catch {
+    // error shown via useApi toast
+  }
 }
 
 function saveSecurity() {
@@ -452,7 +490,6 @@ function saveSecurity() {
 function confirmLogout() {
   if (confirm('Apakah Anda yakin ingin keluar dari akun petugas?')) {
     emit('logout');
-    showToast('Berhasil keluar dari akun petugas');
   }
 }
 </script>

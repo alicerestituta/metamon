@@ -30,6 +30,7 @@ export class OfficersService {
         credentials: officer.credentials,
         nip: officer.nip,
         role: officer.role,
+        accessLevel: officer.accessLevel,
         avatarUrl: officer.avatarUrl,
         notifications: {
           methaneAlert: officer.methaneAlertNotif,

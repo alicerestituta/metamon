@@ -8,6 +8,11 @@ import {
 } from 'typeorm';
 import { AuditLog } from './audit-log.entity';
 
+export enum AccessLevel {
+  ADMIN = 'admin',
+  FIELD = 'field',
+}
+
 @Entity('officers')
 export class Officer {
   @PrimaryGeneratedColumn('uuid')
@@ -24,6 +29,14 @@ export class Officer {
 
   @Column('text')
   role: string;
+
+  @Column({
+    name: 'access_level',
+    type: 'enum',
+    enum: AccessLevel,
+    default: AccessLevel.FIELD,
+  })
+  accessLevel: AccessLevel;
 
   @Column({ name: 'avatar_url', length: 255 })
   avatarUrl: string;

@@ -20,6 +20,9 @@ export class SopTask {
   @Column({ name: 'is_completed', default: false })
   isCompleted: boolean;
 
+  @Column({ name: 'is_checked', default: false })
+  isChecked: boolean;
+
   @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
   completedAt: Date;
 
