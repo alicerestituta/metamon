@@ -28,7 +28,13 @@ export class ReadingsService {
       recordedAt: dto.recordedAt ? new Date(dto.recordedAt) : new Date(),
     });
     await this.readingRepo.save(reading);
-    await this.nodeRepo.update(node.id, { lastSeenAt: new Date() });
+
+    // Update lastSeenAt dan batteryPercent jika dikirim oleh node
+    const nodeUpdate: Record<string, unknown> = { lastSeenAt: new Date() };
+    if (dto.batteryPercent !== undefined) {
+      nodeUpdate.batteryPercent = dto.batteryPercent;
+    }
+    await this.nodeRepo.update(node.id, nodeUpdate);
     return { success: true, message: 'Pembacaan berhasil disimpan' };
   }
 
